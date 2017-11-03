@@ -9,6 +9,7 @@ import javax.swing.SwingConstants;
 import tnt.*;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -109,10 +110,15 @@ public class JPanel_Tetris extends JPanel {
 		
 		JPanel panel_tetris2_game_border = new JPanel();
 		panel_tetris2_body.add(panel_tetris2_game_border, BorderLayout.CENTER);
-		panel_tetris2_game_border.setLayout(new BoxLayout(panel_tetris2_game_border, BoxLayout.X_AXIS));
 		
-//		panel_tetris2_game_border.setBorder(Box.createHorizontalGlue());
+		panel_tetris2_game_border.setLayout(new BoxLayout(panel_tetris2_game_border, BoxLayout.Y_AXIS));
+		panel_tetris2_game_border.add(new Box.Filler(new Dimension(5, 20), new Dimension(5, 20), new Dimension(Short.MAX_VALUE, 20)));
+
 		JPanel panel_tetris2_game = new JPanel();
+		panel_tetris2_game.setBounds(43, 36, 300, 600);
+		panel_tetris2_game.setBackground(Color.BLACK);
 		panel_tetris2_game_border.add(panel_tetris2_game);
+		
+		panel_tetris2_game_border.add(new Box.Filler(new Dimension(5, 10), new Dimension(5, 10), new Dimension(Short.MAX_VALUE, 10)));
 	}
 }
