@@ -1,5 +1,6 @@
 package tnt;
 
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,7 +24,7 @@ public class JPanel_First extends JPanel implements ActionListener {
 		btnTaroButton.setContentAreaFilled(false);// 내용영역 채우기 않함
 		btnTaroButton.setFocusPainted(false); // 선택(focus)되었을 때 생기는 테두리 사용안함
 		btnTaroButton.addActionListener(this);
-		btnTaroButton.setFont(Statics.fontEnglish);
+		btnTaroButton.setFont(new Font(Statics.fontEnglish, Font.PLAIN, 40));
 		add(btnTaroButton);
 
 		JButton btnTetrisButton = new JButton(GAME.TETRIS.name(), Statics.imgTetris);
@@ -32,7 +33,7 @@ public class JPanel_First extends JPanel implements ActionListener {
 		btnTetrisButton.setContentAreaFilled(false);// 내용영역 채우기 않함
 		btnTetrisButton.setFocusPainted(false); // 선택(focus)되었을 때 생기는 테두리 사용안함
 		btnTetrisButton.addActionListener(this);
-		btnTetrisButton.setFont(Statics.fontEnglish);
+		btnTetrisButton.setFont(new Font(Statics.fontEnglish, Font.PLAIN, 40));
 		add(btnTetrisButton);
 		
 		JButton btnPenButton = new JButton(GAME.TRICK_PICTURE.name(), Statics.imgPen);
@@ -41,7 +42,7 @@ public class JPanel_First extends JPanel implements ActionListener {
 		btnPenButton.setContentAreaFilled(false);// 내용영역 채우기 않함
 		btnPenButton.setFocusPainted(false); // 선택(focus)되었을 때 생기는 테두리 사용안함
 		btnPenButton.addActionListener(this);
-		btnPenButton.setFont(Statics.fontEnglish);
+		btnPenButton.setFont(new Font(Statics.fontEnglish, Font.PLAIN, 40));
 		add(btnPenButton);
 
 		JButton btnExitButton = new JButton("Exit", Statics.imgExit);
