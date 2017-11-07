@@ -34,56 +34,86 @@ import javax.swing.InputMap;
 import java.awt.Font;
 
 import tnt.*;
+import javax.swing.JTextField;
+import java.awt.FlowLayout;
 
 class JPanel_TBody extends JPanel {
 
-//	JLabel lblTime;
+	JLabel_Time lblTime;
 	JLabel lblLevel;
 	JPanel pnNext;
 	public JPanel_Game panel_game;
 
-	class JLabel_Time extends JLabel{
+	class JLabel_Time extends JLabel {
 		private int sec = 0;
 		private int min = 0;
 		private int hour = 0;
-		
+
 		Timer timer;
 
-		JLabel_Time(){
+		JLabel_Time() {
 			setOpaque(true);
 			setBackground(Color.BLACK);
 			setForeground(Color.WHITE);
 			setFont(new Font(Statics.fontKorean, Font.PLAIN, 20));
 			setBorder(new MatteBorder(10, 20, 10, 20, Color.BLACK));
-			
+		}
+
+		public void start() {
 			Timer timer = new Timer();
-			TimerTask task = new TimerTask() {	
+			TimerTask task = new TimerTask() {
 				@Override
 				public void run() {
 					plus();
 					setText(String.format("%02d:%02d:%02d", hour, min, sec));
-				}			
+					// System.out.println("시계가 움직이고 있음");
+				}
 			};
 			timer.schedule(task, 1000, 1000);
 		}
-		
-		public void start() {
-			
+
+		public void stop() {
+			if(timer == null) return;
+			timer.cancel();
+			timer.purge();
 		}
-		
+
+		public void end() {
+			if(timer == null) return;
+			
+			timer.cancel();
+			timer.purge();
+
+			sec = 0;
+			min = 0;
+			hour = 0;
+		}
+
 		public void plus() {
 			if (sec < 59)
 				sec++;
 			else {
+				sec = 0;
 				if (min < 59)
 					min++;
 				else {
-					hour++;
 					min = 0;
+					hour++;
 				}
-				sec = 0;
 			}
 		}
+	}
+	
+	public void GameReady() {
+		lblTime.end();
+	}
+
+	public void GameStart() {
+		lblTime.start();
+	}
+	
+	public void GameStop() {
+		lblTime.stop();
 	}
 
 	public JPanel_TBody() {
@@ -95,9 +125,9 @@ class JPanel_TBody extends JPanel {
 		panel_tetris2_info.setLayout(new BoxLayout(panel_tetris2_info, BoxLayout.Y_AXIS));
 		panel_tetris2_info.setBorder(new MatteBorder(20, 20, 20, 20, Statics.colorBackGround));
 
-		JLabel_Time lblTime = new JLabel_Time();
+		lblTime = new JLabel_Time();
 		panel_tetris2_info.add(lblTime);
-		
+
 		panel_tetris2_info.add(Box.createVerticalStrut(25));
 
 		lblLevel = new JLabel("Lv.01");
@@ -132,13 +162,16 @@ class JPanel_TBody extends JPanel {
 }
 
 public class JPanel_Tetris extends JPanel {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-
 	JPanel_TBody panel_tetris1_body;
 	JPanel_TBody panel_tetris2_body;
+
+	JLabel lblMessage;
+
+	
+	enum GAME_STATUS {
+		READY, RUNNING, STOP;
+	}
+	GAME_STATUS game_status;
 
 	public JPanel_Tetris() {
 		setLayout(new BorderLayout(0, 0));
@@ -146,23 +179,27 @@ public class JPanel_Tetris extends JPanel {
 
 		JPanel panel_bottom = new JPanel();
 		add(panel_bottom, BorderLayout.SOUTH);
-		panel_bottom.setLayout(new BoxLayout(panel_bottom, BoxLayout.Y_AXIS));
 		panel_bottom.setBackground(Statics.colorBackGround);
+		panel_bottom.setLayout(new BorderLayout(0, 0));
+
+		lblMessage = new JLabel();
+		lblMessage.setHorizontalAlignment(SwingConstants.CENTER);
+		lblMessage.setFont(new Font(Statics.fontKorean, Font.PLAIN, 40));
+		lblMessage.setBorder(new MatteBorder(0, 0, 10, 0, Statics.colorBackGround));
+		panel_bottom.add(lblMessage, BorderLayout.CENTER);
 
 		JButton btnExit = new JButton(Statics.imgExit);
-		btnExit.setAlignmentX(Component.RIGHT_ALIGNMENT);
-		btnExit.setHorizontalAlignment(SwingConstants.RIGHT);
+		btnExit.setPreferredSize(new Dimension(Statics.imgExit.getIconWidth(), Statics.imgExit.getIconHeight()));
 		btnExit.setBorderPainted(false); // 외곽선 없애줌
 		btnExit.setContentAreaFilled(false);// 내용영역 채우기 않함
 		btnExit.setFocusPainted(false); // 선택(focus)되었을 때 생기는 테두리 사용안함
-		panel_bottom.add(btnExit);
+		panel_bottom.add(btnExit, BorderLayout.EAST);
 		btnExit.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-
+				GameReady(); //게임을 초기화 해준다.
 				GameFrame.Inst.changePanel(GAME.FIRST);
-
 			}
 		});
 
@@ -176,10 +213,33 @@ public class JPanel_Tetris extends JPanel {
 		panel_tetris2_body = new JPanel_TBody();
 		panel_body.add(panel_tetris2_body);
 
-		String[] Actions = { "DOWN", "UP", "LEFT", "RIGHT" };
+		String[] Actions = { "DOWN", "UP", "LEFT", "RIGHT", "ENTER" };
 		for (String Action : Actions) {
 			addAction(Action);
 		}
+
+		GameReady();
+	}
+
+	private void GameReady() {
+		game_status = GAME_STATUS.READY;
+		lblMessage.setText("Enter를 치시면 게임이 시작 됩니다.");
+		panel_tetris1_body.GameReady();
+		panel_tetris2_body.GameReady();
+	}
+
+	private void GameStop() {
+		game_status = GAME_STATUS.STOP;
+		lblMessage.setText("Enter를 치시면 게임이 다시 시작 됩니다.");
+		panel_tetris1_body.GameStop();
+		panel_tetris2_body.GameStop();
+	}
+
+	private void GameStart() {
+		game_status = GAME_STATUS.RUNNING;
+		lblMessage.setText("Enter를 치시면 게임이 중단 됩니다.");
+		panel_tetris1_body.GameStart();
+		panel_tetris2_body.GameStart();
 	}
 
 	public MotionAction addAction(String name) {
@@ -203,6 +263,17 @@ public class JPanel_Tetris extends JPanel {
 
 		public void actionPerformed(ActionEvent e) {
 			switch (this.name) {
+			case "ENTER":
+				switch (game_status) {
+				case READY:
+				case STOP:	
+					GameStart();
+					break;
+				case RUNNING:
+					GameStop();
+					break;
+				}
+				break;
 			case "DOWN":
 				panel_tetris1_body.panel_game.keyProcessing(KeyEvent.VK_DOWN);
 				panel_tetris2_body.panel_game.keyProcessing(KeyEvent.VK_DOWN);
