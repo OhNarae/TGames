@@ -37,146 +37,26 @@ import tnt.*;
 import javax.swing.JTextField;
 import java.awt.FlowLayout;
 
-class JPanel_TBody extends JPanel {
-
-	JLabel_Time lblTime;
-	JLabel lblLevel;
-	JPanel pnNext;
-	public JPanel_Game panel_game;
-
-	class JLabel_Time extends JLabel {
-		private int sec = 0;
-		private int min = 0;
-		private int hour = 0;
-
-		Timer timer;
-
-		JLabel_Time() {
-			setOpaque(true);
-			setBackground(Color.BLACK);
-			setForeground(Color.WHITE);
-			setFont(new Font(Statics.fontKorean, Font.PLAIN, 20));
-			setBorder(new MatteBorder(10, 20, 10, 20, Color.BLACK));
-		}
-
-		public void start() {
-			Timer timer = new Timer();
-			TimerTask task = new TimerTask() {
-				@Override
-				public void run() {
-					plus();
-					setText(String.format("%02d:%02d:%02d", hour, min, sec));
-					// System.out.println("시계가 움직이고 있음");
-				}
-			};
-			timer.schedule(task, 1000, 1000);
-		}
-
-		public void stop() {
-			if(timer == null) return;
-			timer.cancel();
-			timer.purge();
-		}
-
-		public void end() {
-			if(timer == null) return;
-			
-			timer.cancel();
-			timer.purge();
-
-			sec = 0;
-			min = 0;
-			hour = 0;
-		}
-
-		public void plus() {
-			if (sec < 59)
-				sec++;
-			else {
-				sec = 0;
-				if (min < 59)
-					min++;
-				else {
-					min = 0;
-					hour++;
-				}
-			}
-		}
-	}
-	
-	public void GameReady() {
-		lblTime.end();
-	}
-
-	public void GameStart() {
-		lblTime.start();
-	}
-	
-	public void GameStop() {
-		lblTime.stop();
-	}
-
-	public JPanel_TBody() {
-		setLayout(new BorderLayout(0, 0));
-
-		JPanel panel_tetris2_info = new JPanel();
-		panel_tetris2_info.setBackground(Statics.colorBackGround);
-		add(panel_tetris2_info, BorderLayout.EAST);
-		panel_tetris2_info.setLayout(new BoxLayout(panel_tetris2_info, BoxLayout.Y_AXIS));
-		panel_tetris2_info.setBorder(new MatteBorder(20, 20, 20, 20, Statics.colorBackGround));
-
-		lblTime = new JLabel_Time();
-		panel_tetris2_info.add(lblTime);
-
-		panel_tetris2_info.add(Box.createVerticalStrut(25));
-
-		lblLevel = new JLabel("Lv.01");
-		lblLevel.setOpaque(true);
-		lblLevel.setBackground(Color.BLACK);
-		lblLevel.setForeground(Color.WHITE);
-		lblLevel.setFont(new Font(Statics.fontKorean, Font.PLAIN, 20));
-		lblLevel.setBorder(new MatteBorder(10, 35, 10, 35, Color.BLACK));
-		panel_tetris2_info.add(lblLevel);
-
-		panel_tetris2_info.add(Box.createVerticalStrut(25));
-
-		JLabel lblNext = new JLabel("Next");
-		lblNext.setForeground(Color.BLACK);
-		lblNext.setFont(new Font(Statics.fontKorean, Font.PLAIN, 30));
-		lblNext.setBorder(new MatteBorder(0, 20, 0, 0, (Color) new Color(255, 214, 109)));
-		panel_tetris2_info.add(lblNext);
-
-		pnNext = new JPanel();
-		pnNext.setBackground(Color.BLACK);
-		panel_tetris2_info.add(pnNext);
-
-		JPanel panel_tetris2_game_border = new JPanel();
-		add(panel_tetris2_game_border, BorderLayout.CENTER);
-		panel_tetris2_game_border.setLayout(new GridLayout(0, 1));
-		panel_tetris2_game_border.setBorder(new MatteBorder(20, 20, 20, 20, Statics.colorBackGround));
-		panel_tetris2_game_border.setBackground(Color.BLACK);
-
-		panel_game = new JPanel_Game();
-		panel_tetris2_game_border.add(panel_game);
-	}
-}
-
 public class JPanel_Tetris extends JPanel {
 	JPanel_TBody panel_tetris1_body;
 	JPanel_TBody panel_tetris2_body;
 
 	JLabel lblMessage;
 
-	
 	enum GAME_STATUS {
 		READY, RUNNING, STOP;
 	}
+	
+	enum GAME_MODE{
+		ONE, TWO, DYNAMIC
+	}
+
 	GAME_STATUS game_status;
 
 	public JPanel_Tetris() {
 		setLayout(new BorderLayout(0, 0));
 		setSize(Statics.FRAME_WIDTH, Statics.FRAME_HEIGHT);
-
+		
 		JPanel panel_bottom = new JPanel();
 		add(panel_bottom, BorderLayout.SOUTH);
 		panel_bottom.setBackground(Statics.colorBackGround);
@@ -198,7 +78,7 @@ public class JPanel_Tetris extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				GameReady(); //게임을 초기화 해준다.
+				GameReady(); // 게임을 초기화 해준다.
 				GameFrame.Inst.changePanel(GAME.FIRST);
 			}
 		});
@@ -212,7 +92,7 @@ public class JPanel_Tetris extends JPanel {
 
 		panel_tetris2_body = new JPanel_TBody();
 		panel_body.add(panel_tetris2_body);
-
+		
 		String[] Actions = { "DOWN", "UP", "LEFT", "RIGHT", "ENTER" };
 		for (String Action : Actions) {
 			addAction(Action);
@@ -266,29 +146,31 @@ public class JPanel_Tetris extends JPanel {
 			case "ENTER":
 				switch (game_status) {
 				case READY:
-				case STOP:	
 					GameStart();
 					break;
 				case RUNNING:
 					GameStop();
 					break;
+				case STOP:
+					GameStart();
+					break;
 				}
 				break;
 			case "DOWN":
-				panel_tetris1_body.panel_game.keyProcessing(KeyEvent.VK_DOWN);
-				panel_tetris2_body.panel_game.keyProcessing(KeyEvent.VK_DOWN);
+				panel_tetris1_body.keyProcessing(KeyEvent.VK_DOWN);
+				panel_tetris2_body.keyProcessing(KeyEvent.VK_DOWN);
 				break;
 			case "UP":
-				panel_tetris1_body.panel_game.keyProcessing(KeyEvent.VK_UP);
-				panel_tetris2_body.panel_game.keyProcessing(KeyEvent.VK_UP);
+				panel_tetris1_body.keyProcessing(KeyEvent.VK_UP);
+				panel_tetris2_body.keyProcessing(KeyEvent.VK_UP);
 				break;
 			case "LEFT":
-				panel_tetris1_body.panel_game.keyProcessing(KeyEvent.VK_LEFT);
-				panel_tetris2_body.panel_game.keyProcessing(KeyEvent.VK_LEFT);
+				panel_tetris1_body.keyProcessing(KeyEvent.VK_LEFT);
+				panel_tetris2_body.keyProcessing(KeyEvent.VK_LEFT);
 				break;
 			case "RIGHT":
-				panel_tetris1_body.panel_game.keyProcessing(KeyEvent.VK_RIGHT);
-				panel_tetris2_body.panel_game.keyProcessing(KeyEvent.VK_RIGHT);
+				panel_tetris1_body.keyProcessing(KeyEvent.VK_RIGHT);
+				panel_tetris2_body.keyProcessing(KeyEvent.VK_RIGHT);
 				break;
 			}
 		}

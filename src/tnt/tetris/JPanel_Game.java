@@ -11,11 +11,6 @@ import tnt.tetris.JPanel_Game.Point;
 
 class JPanel_Game extends JPanel {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-
 	class Point {
 		int x;
 		int y;
@@ -25,9 +20,10 @@ class JPanel_Game extends JPanel {
 			this.y = y;
 		}
 	}
-
 	Point[] blockPoint;
 
+	
+	
 	JPanel_Game() {
 		blockPoint = new Point[4];
 		blockPoint[0] = new Point(0, 0);
