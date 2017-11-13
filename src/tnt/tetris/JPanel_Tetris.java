@@ -87,13 +87,13 @@ public class JPanel_Tetris extends JPanel {
 		add(panel_body, BorderLayout.CENTER);
 		panel_body.setLayout(new BoxLayout(panel_body, BoxLayout.X_AXIS));
 
-		panel_tetris1_body = new JPanel_TBody();
+		panel_tetris1_body = new JPanel_TBody(this, KeyEvent.VK_A, KeyEvent.VK_D, KeyEvent.VK_S, KeyEvent.VK_W);
 		panel_body.add(panel_tetris1_body);
 
-		panel_tetris2_body = new JPanel_TBody();
+		panel_tetris2_body = new JPanel_TBody(this, KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_DOWN, KeyEvent.VK_UP);
 		panel_body.add(panel_tetris2_body);
 		
-		String[] Actions = { "DOWN", "UP", "LEFT", "RIGHT", "ENTER" };
+		String[] Actions = { "ENTER", "LEFT", "RIGHT", "DOWN", "UP", "A", "D", "S", "W", "SPACE" };
 		for (String Action : Actions) {
 			addAction(Action);
 		}
@@ -156,22 +156,30 @@ public class JPanel_Tetris extends JPanel {
 					break;
 				}
 				break;
-			case "DOWN":
-				panel_tetris1_body.keyProcessing(KeyEvent.VK_DOWN);
-				panel_tetris2_body.keyProcessing(KeyEvent.VK_DOWN);
-				break;
-			case "UP":
-				panel_tetris1_body.keyProcessing(KeyEvent.VK_UP);
-				panel_tetris2_body.keyProcessing(KeyEvent.VK_UP);
-				break;
 			case "LEFT":
-				panel_tetris1_body.keyProcessing(KeyEvent.VK_LEFT);
 				panel_tetris2_body.keyProcessing(KeyEvent.VK_LEFT);
 				break;
 			case "RIGHT":
-				panel_tetris1_body.keyProcessing(KeyEvent.VK_RIGHT);
 				panel_tetris2_body.keyProcessing(KeyEvent.VK_RIGHT);
+				break;				
+			case "DOWN":
+				panel_tetris2_body.keyProcessing(KeyEvent.VK_DOWN); 
 				break;
+			case "UP":
+				panel_tetris2_body.keyProcessing(KeyEvent.VK_UP);
+				break;
+			case "A":
+				panel_tetris1_body.keyProcessing(KeyEvent.VK_A);
+				break;
+			case "D":
+				panel_tetris1_body.keyProcessing(KeyEvent.VK_D);
+				break;
+			case "S":
+				panel_tetris1_body.keyProcessing(KeyEvent.VK_S);
+				break;
+			case "W":
+				panel_tetris1_body.keyProcessing(KeyEvent.VK_W);
+				break;				
 			}
 		}
 	}

@@ -2,8 +2,13 @@ package tnt.tetris;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.GridLayout;
+import java.awt.Image;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -14,91 +19,173 @@ import javax.swing.JPanel;
 import javax.swing.border.MatteBorder;
 
 import tnt.Statics;
-//import tnt.tetris.JPanel_TBody.JLabel_Time;
 
-class JPanel_TBody extends JPanel {
+class JLabel_Time extends JLabel {
+	private int sec;
+	private int min;
+	private int hour;
 
-	JLabel_Time lblTime;
-	JLabel lblLevel;
-	JPanel pnNext;
-	JPanel_Game panel_game;	//게임판
+	Timer timer;
+
+	JPanel_TBody BodyPanel;
 	
-	class JLabel_Time extends JLabel {
-		private int sec = 0;
-		private int min = 0;
-		private int hour = 0;
+	JLabel_Time(JPanel_TBody BodyPanel) {
+		setOpaque(true);
+		setBackground(Color.BLACK);
+		setForeground(Color.WHITE);
+		setFont(new Font(Statics.fontKorean, Font.PLAIN, 20));
+		setBorder(new MatteBorder(10, 20, 10, 20, Color.BLACK));
+		
+		this.BodyPanel = BodyPanel;
+	}
 
-		Timer timer;
+	public void start() {
+		timer = new Timer();
+		TimerTask task = new TimerTask() {
+			@Override
+			public void run() {
+				plus();
+				setText(String.format("%02d:%02d:%02d", hour, min, sec));
+			}
+		};
+		timer.schedule(task, 1000, 1000);
+	}
 
-		JLabel_Time() {
-			setOpaque(true);
-			setBackground(Color.BLACK);
-			setForeground(Color.WHITE);
-			setFont(new Font(Statics.fontKorean, Font.PLAIN, 20));
-			setBorder(new MatteBorder(10, 20, 10, 20, Color.BLACK));
-		}
+	public void stop() {
+		if (timer == null) return;
+		timer.cancel();
+		timer.purge();
+	}
 
-		public void start() {
-			timer = new Timer();
-			TimerTask task = new TimerTask() {
-				@Override
-				public void run() {
-					plus();
-					setText(String.format("%02d:%02d:%02d", hour, min, sec));
-					// System.out.println("시계가 움직이고 있음");
-				}
-			};
-			timer.schedule(task, 1000, 1000);
-		}
-
-		public void stop() {
-			if (timer == null) return;
+	public void end() {
+		if (timer != null) {
 			timer.cancel();
 			timer.purge();
 		}
 
-		public void end() {
-			if (timer != null) {
-				timer.cancel();
-				timer.purge();
-			}
+		sec = 0;
+		min = 0;
+		hour = 0;
 
+		setText(String.format("%02d:%02d:%02d", hour, min, sec));
+	}
+
+	public void plus() {
+		if (sec < 59)
+			sec++;
+		else {
 			sec = 0;
-			min = 0;
-			hour = 0;
-
-			setText(String.format("%02d:%02d:%02d", hour, min, sec));
-		}
-
-		public void plus() {
-			if (sec < 59)
-				sec++;
+			if (min < 59)
+				min++;
 			else {
-				sec = 0;
-				if (min < 59)
-					min++;
-				else {
-					min = 0;
-					hour++;
-				}
+				min = 0;
+				hour++;
+			}
+			BodyPanel.checkTime(hour, min);
+		}		
+	}
+}
+
+class JLabel_Level extends JLabel {
+	int level = 1;
+	
+	JLabel_Level(){
+		setText("Lv.01");
+		setOpaque(true);
+		setBackground(Color.BLACK);
+		setForeground(Color.WHITE);
+		setFont(new Font(Statics.fontKorean, Font.PLAIN, 20));
+		setBorder(new MatteBorder(10, 35, 10, 35, Color.BLACK));
+	}
+	
+	void UP(){
+		setText(String.format("Lv.%02d", ++level));
+	}
+}
+
+
+
+class JPanel_TBody_Next extends JPanel{
+	
+	Queue<TBlock>  preBlocks; //예상 블럭 정보
+	final int preBlockNum = 4; //예상 블럭 갯수
+	
+	//wall_width : 118 / 전체화면 1200  wall_height : 438 / 전체화면 750
+	int wall_width = 118; // JPanel_TBody_Next 패널의 넓이
+	int wall_height = 438 / preBlockNum; //JPanel_TBody_Next 패널의 높이를 4등분(예상 블럭 갯수로 나눔)
+	
+	int block_width = wall_width / 6;
+	int block_height = wall_height / 6;
+	
+	Image buffImage;
+	Graphics buffg;
+	
+	JPanel_TBody_Next(){
+		setBackground(Color.BLACK);
+		setLayout(new GridLayout(preBlockNum, 1, 0, 0));
+		
+		preBlocks = new LinkedList<TBlock>();
+		for(int i = 0 ; i < preBlockNum ; i++) {
+			preBlocks.add(new TBlock(block_width, wall_height * i + block_height, block_width, block_height));
+		}	
+	}
+	
+	// 다음 블럭 정보를 가져가면서
+	TBlock GetNextBlock(){	
+		TBlock newBlock = preBlocks.poll();
+		for(TBlock block : preBlocks)
+			block.ChangeBlockPoint(0, -wall_height);
+		preBlocks.add(new TBlock(block_width, wall_height * 3 + block_height, block_width, block_height));
+		
+		repaint();
+		return newBlock;
+	}
+	
+	public void paint(Graphics g) {
+		
+		buffImage = createImage(getWidth(), getHeight());
+		buffg = buffImage.getGraphics();
+
+		buffg.clearRect(0, 0, getWidth(), getHeight());
+		
+		buffg.setColor(Color.black);
+		buffg.fillRect(0, 0, getWidth(), getHeight());
+		
+		//예상 블럭을 그려준다.
+		for(TBlock block : preBlocks) {
+			buffg.setColor(block.type.color);
+			for(Point point : block.points) {
+				buffg.fillRect(point.x, point.y, block.width, block.height);
 			}
 		}
+		
+		g.drawImage(buffImage, 0, 0, this);
 	}
+}
 
-	public void GameReady() {
-		lblTime.end();
-	}
+class JPanel_TBody extends JPanel {
 
-	public void GameStart() {
-		lblTime.start();
-	}
-
-	public void GameStop() {
-		lblTime.stop();
-	}
-
-	public JPanel_TBody() {
+	JPanel_Tetris panelTetris;
+	
+	JLabel_Time lblTime;
+	JLabel_Level lblLevel;
+	JPanel_TBody_Next pnNext;
+	JPanel_Game panel_game;	//게임판
+	
+	final int leftKey;
+	final int rightKey;
+	final int downKey;
+	final int changeKey;
+	
+	public JPanel_TBody(JPanel_Tetris panelTetris, int leftKey, int rightKey, int downKey, int changeKey) {
 		setLayout(new BorderLayout(0, 0));
+		
+		this.panelTetris = panelTetris;
+		
+		this.leftKey = leftKey;
+		this.rightKey = rightKey;
+		this.downKey = downKey;
+		this.changeKey = changeKey;		
 
 		JPanel panel_tetris2_info = new JPanel();
 		panel_tetris2_info.setBackground(Statics.colorBackGround);
@@ -106,17 +193,12 @@ class JPanel_TBody extends JPanel {
 		panel_tetris2_info.setLayout(new BoxLayout(panel_tetris2_info, BoxLayout.Y_AXIS));
 		panel_tetris2_info.setBorder(new MatteBorder(20, 20, 20, 20, Statics.colorBackGround));
 
-		lblTime = new JLabel_Time();
+		lblTime = new JLabel_Time(this);
 		panel_tetris2_info.add(lblTime);
 
 		panel_tetris2_info.add(Box.createVerticalStrut(25));
 
-		lblLevel = new JLabel("Lv.01");
-		lblLevel.setOpaque(true);
-		lblLevel.setBackground(Color.BLACK);
-		lblLevel.setForeground(Color.WHITE);
-		lblLevel.setFont(new Font(Statics.fontKorean, Font.PLAIN, 20));
-		lblLevel.setBorder(new MatteBorder(10, 35, 10, 35, Color.BLACK));
+		lblLevel = new JLabel_Level();
 		panel_tetris2_info.add(lblLevel);
 
 		panel_tetris2_info.add(Box.createVerticalStrut(25));
@@ -127,21 +209,50 @@ class JPanel_TBody extends JPanel {
 		lblNext.setBorder(new MatteBorder(0, 20, 0, 0, (Color) new Color(255, 214, 109)));
 		panel_tetris2_info.add(lblNext);
 
-		pnNext = new JPanel();
-		pnNext.setBackground(Color.BLACK);
+		pnNext = new JPanel_TBody_Next();
 		panel_tetris2_info.add(pnNext);
 
 		JPanel panel_tetris2_game_border = new JPanel();
 		add(panel_tetris2_game_border, BorderLayout.CENTER);
 		panel_tetris2_game_border.setLayout(new GridLayout(0, 1));
-		panel_tetris2_game_border.setBorder(new MatteBorder(20, 20, 20, 20, Statics.colorBackGround));
+		panel_tetris2_game_border.setBorder(new MatteBorder(29, 9, 30, 10, Statics.colorBackGround));
 		panel_tetris2_game_border.setBackground(Color.BLACK);
 
-		panel_game = new JPanel_Game();
+		panel_game = new JPanel_Game(this);
+
 		panel_tetris2_game_border.add(panel_game);
+		
+	}
+	
+	public void GameReady() {
+		lblTime.end();		
+	}
+
+	public void GameStart() {
+		lblTime.start();
+		panel_game.GameStart();
+	}
+
+	public void GameStop() {
+		lblTime.stop();
+		panel_game.GameStop();
+	}
+	
+	public void checkTime(int hour, int min) {
+		int per_min = 1; //5분 후 부터 5분 단위로.
+		if((min > 0 || hour > 0) && min % per_min == 0) 
+			lblLevel.UP();
 	}
 	
 	public void keyProcessing(int vkDown) {
-		panel_game.keyProcessing(vkDown);
+		if(leftKey == vkDown) {
+			panel_game.pressLeftKey();
+		}else if(rightKey == vkDown) {
+			panel_game.pressRightKey();
+		}else if(downKey == vkDown) {
+			panel_game.pressDownKey();
+		}else if(changeKey == vkDown) {
+			panel_game.pressChangeKey();
+		}
 	}
 }
