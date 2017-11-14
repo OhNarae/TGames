@@ -4,24 +4,14 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.event.KeyEvent;
-import java.util.ArrayList;
-import java.util.Arrays;
+
 import java.util.BitSet;
-import java.util.Comparator;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.swing.JPanel;
 
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
-
 import tnt.Statics;
-
-import javax.swing.JTextField;
 
 class BlockManager {
 
@@ -31,13 +21,11 @@ class BlockManager {
 	int BLOCK_LENGTH = 30;
 
 	TBlock newBlock;
-	Object key_newBlock;
 	BitSet hardenBlock; // 100000000001 초기 구성 1은 벽 혹은 블럭이다. 초기 시 1은 벽이다.
 						// 100000000001
 						// 100000000001
 						// 111111111111
 						// 111111111111 100000000001 100000000001 100000000001 <- 즉 이렇게 구성된다.
-	Object key_hardenBlock;
 	int WIDTH_HARDEN_BLOCK = WIDTH_BLOCK_NUM + 2;
 	int HEIGHT_HARDEN_BLOCK = HEIGHT_BLOCK_NUM + 1;
 
@@ -71,9 +59,7 @@ class BlockManager {
 	}
 
 	void setNewBlock(BLOCK_TYPE blockType) {
-		synchronized(key_newBlock) {
 			newBlock = new TBlock(blockType, 5, 0);
-		}
 	}
 
 	boolean goDown() {
@@ -198,26 +184,26 @@ class JPanel_Game extends JPanel implements Runnable {
 		t = new Thread(this);
 	}
 
-	public void pressDownKey() {
-		if (!(blockManager.goDown() || blockManager.gameOver)) {
-			blockManager.setNewBlock(panelBody.pnNext.GetNextBlock().type);
-		}
-		repaint();
+	public synchronized void pressDownKey() {
+			if (!(blockManager.goDown() || blockManager.gameOver)) {
+				blockManager.setNewBlock(panelBody.pnNext.GetNextBlock().type);
+			}
+			repaint();
 	}
 
 	public void pressLeftKey() {
-		blockManager.goLeft();
-		repaint();
+			blockManager.goLeft();
+			repaint();
 	}
 
 	public void pressRightKey() {
-		blockManager.goRight();
-		repaint();
+			blockManager.goRight();
+			repaint();
 	}
 
 	public void pressChangeKey() {
-		blockManager.change();
-		repaint();
+			blockManager.change();
+			repaint();
 	}
 
 	public void paint(Graphics g) {
@@ -258,10 +244,9 @@ class JPanel_Game extends JPanel implements Runnable {
 	@Override
 	public void run() {
 		try {
-			while (!t.interrupted()) {
-				Thread.sleep(sleepTime);
-				blockManager.goDown();
-				repaint();
+			while (!Thread.interrupted()) {
+				Thread.sleep(sleepTime/10);
+				pressDownKey();
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
