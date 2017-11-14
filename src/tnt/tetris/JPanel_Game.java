@@ -25,21 +25,22 @@ import javax.swing.JTextField;
 
 class BlockManager {
 
-	TBlock newBlock;
-	BitSet hardenBlock; // 111111111111 초기 구성 1은 벽 혹은 블럭이다. 초기 시 1은 벽이다.
-						// 100000000001
-						// 100000000001
-						// 100000000001
-						// 111111111111
-						// 000000000000 000000000000 111111111111 100000000001 100000000001 111111111111
-	int width;
-	int height;
-
 	// width : 420 height : 600
 	int WIDTH_BLOCK_NUM = 14;
 	int HEIGHT_BLOCK_NUM = 20;
 	int BLOCK_LENGTH = 30;
-	
+
+	TBlock newBlock;
+	Object key_newBlock;
+	BitSet hardenBlock; // 100000000001 초기 구성 1은 벽 혹은 블럭이다. 초기 시 1은 벽이다.
+						// 100000000001
+						// 100000000001
+						// 111111111111
+						// 111111111111 100000000001 100000000001 100000000001 <- 즉 이렇게 구성된다.
+	Object key_hardenBlock;
+	int WIDTH_HARDEN_BLOCK = WIDTH_BLOCK_NUM + 2;
+	int HEIGHT_HARDEN_BLOCK = HEIGHT_BLOCK_NUM + 1;
+
 	boolean gameOver;
 	String gameOverMsg;
 
@@ -47,37 +48,48 @@ class BlockManager {
 
 		newBlock = new TBlock(blockType, 5, 0);
 
-		hardenBlock = new BitSet((HEIGHT_BLOCK_NUM + 2) * (WIDTH_BLOCK_NUM + 2));
-		for (int i = 0; i < (HEIGHT_BLOCK_NUM + 2); i++) {
-			for (int j = 0; j < (WIDTH_BLOCK_NUM + 2); j++) {
-//				if (i == 0 || i == HEIGHT_BLOCK_NUM + 1 || j == 0 || j == WIDTH_BLOCK_NUM + 1)
-				if (i == HEIGHT_BLOCK_NUM + 1  || j == 0 || j == WIDTH_BLOCK_NUM + 1)
-					hardenBlock.set(i * (WIDTH_BLOCK_NUM + 2) + j);
-			}
-		}
-		
+		hardenBlock = new BitSet(HEIGHT_HARDEN_BLOCK * WIDTH_HARDEN_BLOCK);
+		hardenBlock.or(setWall());
+
 		gameOver = false;
 		gameOverMsg = "GameOver";
 	}
 
+	BitSet setWall() {
+		byte[] bsByteArray = new byte[HEIGHT_HARDEN_BLOCK * (WIDTH_HARDEN_BLOCK / 8)];
+
+		for (int i = 0; i < bsByteArray.length; i += 2) {
+			if (i == bsByteArray.length - 2) {
+				bsByteArray[i] = -1; // 1111 1111
+				bsByteArray[i + 1] = -1;
+			} else {
+				bsByteArray[i] = 1;// 0000 0001
+				bsByteArray[i + 1] = -128; // 1000 0000
+			}
+		}
+		return BitSet.valueOf(bsByteArray);
+	}
+
 	void setNewBlock(BLOCK_TYPE blockType) {
-		newBlock = new TBlock(blockType, 5, 0);
+		synchronized(key_newBlock) {
+			newBlock = new TBlock(blockType, 5, 0);
+		}
 	}
 
 	boolean goDown() {
 		boolean canGo = true;
 
 		// 하나 다운 된 위치를 비트로 계산
-		BitSet newBlockBS = new BitSet((HEIGHT_BLOCK_NUM + 2) * (WIDTH_BLOCK_NUM + 2));
-		TreeSet<Integer> y_list = new TreeSet<Integer>();//(o1, o2) -> o2 - o1);
+		BitSet newBlockBS = new BitSet(HEIGHT_HARDEN_BLOCK * WIDTH_HARDEN_BLOCK);
+		TreeSet<Integer> y_list = new TreeSet<Integer>();// 하드블럭이 될 시 y의 위치를 확인하여야 함으로 저장 (채워진 블럭은 없애야 함으로)
 		for (Point point : newBlock.points) {
-			y_list.add((point.y + 1) * (WIDTH_BLOCK_NUM + 2));
-			newBlockBS.set((point.y + 1) * (WIDTH_BLOCK_NUM + 2) + point.x + 1);
-			if (hardenBlock.get((point.y + 1) * (WIDTH_BLOCK_NUM + 2) + point.x + 1)) { // 현재 벽&하드블럭 들과 겹치는 부분이 있는지 계산
+			y_list.add(point.y * WIDTH_HARDEN_BLOCK);
+			newBlockBS.set(point.y * WIDTH_HARDEN_BLOCK + point.x + 1);
+			if (hardenBlock.get(point.y * WIDTH_HARDEN_BLOCK + point.x + 1)) { // 현재 벽&하드블럭 들과 겹치는 부분이 있는지 계산
 				// 현재가 겹침
 				gameOver = true;
 			}
-			if (hardenBlock.get((point.y + 2) * (WIDTH_BLOCK_NUM + 2) + point.x + 1)) { // 현재 벽&하드블럭 들과 겹치는 부분이 있는지 계산
+			if (hardenBlock.get((point.y + 1) * WIDTH_HARDEN_BLOCK + point.x + 1)) { // 현재 벽&하드블럭 들과 겹치는 부분이 있는지 계산
 				// 다운 되었을 때 겹치는 부분이 있다면..
 				canGo = false;
 			}
@@ -90,23 +102,24 @@ class BlockManager {
 
 		// -> 겹치는 부분이 있다면 정지
 		hardenBlock.or(newBlockBS);
-		if(gameOver)
+		if (gameOver)
 			return false;
 
 		// 정지 후 한줄이 채워진 블럭이 있는지 확인 (XOR? 로 계산하고 있을 시에는 >> 쉬프트로 이후의 블럭을 0단위까지 >> 다시 해당
 		// 위치까지 << 로 해결)
 		Iterator<Integer> itr = y_list.iterator();
 		while (itr.hasNext()) {
- 			int y = itr.next();
-			if(hardenBlock.nextClearBit(y) > (y + WIDTH_BLOCK_NUM + 2)) {//한줄이 채워지면
+			int y = itr.next();
+			if (hardenBlock.nextClearBit(y) > (y + WIDTH_HARDEN_BLOCK)) {// 한줄이 채워지면
 				byte[] hardenBlockByte = hardenBlock.get(0, y).toByteArray();
 				byte[] resultByte = new byte[hardenBlockByte.length + 2];
-				System.arraycopy(hardenBlockByte, 0, resultByte, 2,  hardenBlockByte.length);
+				System.arraycopy(hardenBlockByte, 0, resultByte, 2, hardenBlockByte.length);
+				resultByte[0] = 1;
+				resultByte[1] = -128;
 				BitSet bs = BitSet.valueOf(resultByte);
-				hardenBlock.clear(0, y + WIDTH_BLOCK_NUM + 2);
+
+				hardenBlock.clear(0, y + WIDTH_HARDEN_BLOCK);
 				hardenBlock.or(bs);
-				hardenBlock.set(0);
-				hardenBlock.set(WIDTH_BLOCK_NUM + 1);
 			}
 		}
 
@@ -115,10 +128,10 @@ class BlockManager {
 
 	void goLeft() {
 		boolean canGo = true;
-		// 하나 다운 된 위치를 비트로 계산
+		// 하나 Left 이동 된 위치를 비트로 계산
 		for (Point point : newBlock.points) {
-			if (hardenBlock.get((point.y + 1) * (WIDTH_BLOCK_NUM + 2) + point.x)) { // 왼쪽으로 움직일 시 장애물이 있는지
-				// 다운 되었을 때 겹치는 부분이 있다면..
+			if (hardenBlock.get(point.y * WIDTH_HARDEN_BLOCK + point.x)) { // 왼쪽으로 움직일 시 장애물이 있는지
+				// Left 이동 되었을 때 겹치는 부분이 있다면..
 				canGo = false;
 			}
 		}
@@ -131,37 +144,37 @@ class BlockManager {
 
 	void goRight() {
 		boolean canGo = true;
-		// 하나 다운 된 위치를 비트로 계산
+		// 하나 Right 이동 된 위치를 비트로 계산
 		for (Point point : newBlock.points) {
-			if (hardenBlock.get((point.y + 1) * (WIDTH_BLOCK_NUM + 2) + point.x + 2)) { // 오른쪽으로 움직일 시 장애물이 있는지
-				// 다운 되었을 때 겹치는 부분이 있다면..
+			if (hardenBlock.get(point.y * WIDTH_HARDEN_BLOCK + point.x + 2)) { // 오른쪽으로 움직일 시 장애물이 있는지
+				// Right 이동 되었을 때 겹치는 부분이 있다면..
 				canGo = false;
 			}
 		}
 
-		if (canGo) { // -> 겹치는 부분이 없다면 Left 이동 -> 끝
+		if (canGo) { // -> 겹치는 부분이 없다면 Right 이동 -> 끝
 			newBlock.goRight();
 		}
 		// -> 겹치는 부분이 있다면 움직이지 않음
 	}
 
 	void change() {
-		// change 된 위치를 비트로 계산
+		// change된 위치를 비트로 계산
 		boolean canGo = true;
-		for (Point point : newBlock.predictChange()) {
-			if (hardenBlock.get((point.y + 1) * (WIDTH_BLOCK_NUM + 2) + point.x + 1)) { // 오른쪽으로 움직일 시 장애물이 있는지
-				// 다운 되었을 때 겹치는 부분이 있다면..
+		for (Point point : newBlock.predictChange()) { // change 되었을 시, 블럭의 위치를 예측한다.
+			if (point.y < 0 || hardenBlock.get(point.y * WIDTH_HARDEN_BLOCK + point.x + 1)) {
+				// change 되었을 때 겹치는 부분이 있다면..
 				canGo = false;
 			}
 		}
 
-		if (canGo) { // -> 겹치는 부분이 없다면 Left 이동 -> 끝
+		if (canGo) { // -> 겹치는 부분이 없다면 change -> 끝
 			newBlock.goChange();
 		}
 	}
 
 	boolean ExistHardenBlock(int i, int j) { // i행 j열에 하드블럭이 있는지 체크
-		return hardenBlock.get((i + 1) * (WIDTH_BLOCK_NUM + 2) + (j + 1));
+		return hardenBlock.get(i * (WIDTH_BLOCK_NUM + 2) + (j + 1));
 	}
 }
 
@@ -177,40 +190,18 @@ class JPanel_Game extends JPanel implements Runnable {
 	Thread t;
 	int sleepTime = 1000;
 
-	// width : 420 height : 600
-	int WIDTH_BLOCK_NUM = 14;
-	int HEIGHT_BLOCK_NUM = 20;
-	int BLOCK_LENGTH = 30;
-
 	JPanel_Game(JPanel_TBody panelBody) {
 		this.panelBody = panelBody;
 		setLayout(null);
-		// width : 399height : 619
+
 		blockManager = new BlockManager(panelBody.pnNext.GetNextBlock().type, getWidth(), getHeight());
 		t = new Thread(this);
 	}
 
-	public void keyProcessing(int vkDown) {
-		switch (vkDown) {
-		case KeyEvent.VK_DOWN:
-			blockManager.goDown();
-			break;
-		case KeyEvent.VK_LEFT:
-			blockManager.goLeft();
-			break;
-		case KeyEvent.VK_RIGHT:
-			blockManager.goRight();
-			break;
-		}
-
-		repaint();
-	}
-
 	public void pressDownKey() {
 		if (!(blockManager.goDown() || blockManager.gameOver)) {
-				blockManager.setNewBlock(panelBody.pnNext.GetNextBlock().type);
+			blockManager.setNewBlock(panelBody.pnNext.GetNextBlock().type);
 		}
-
 		repaint();
 	}
 
@@ -235,27 +226,30 @@ class JPanel_Game extends JPanel implements Runnable {
 
 		buffg.clearRect(0, 0, getWidth(), getHeight());
 
-		if(!blockManager.gameOver) {
+		if (!blockManager.gameOver) {
 			// 현재 블럭
 			buffg.setColor(blockManager.newBlock.type.color);
 			for (Point point : blockManager.newBlock.points) {
-				buffg.fillRect(point.x * BLOCK_LENGTH, point.y * BLOCK_LENGTH, BLOCK_LENGTH, BLOCK_LENGTH);
+				buffg.fillRect(point.x * blockManager.BLOCK_LENGTH, point.y * blockManager.BLOCK_LENGTH,
+						blockManager.BLOCK_LENGTH, blockManager.BLOCK_LENGTH);
 			}
 		}
 
 		// 배경 블럭
 		buffg.setColor(Color.lightGray);
-		for (int i = 0; i < HEIGHT_BLOCK_NUM; i++) {
-			for (int j = 0; j < WIDTH_BLOCK_NUM; j++) {
+		for (int i = 0; i < blockManager.HEIGHT_BLOCK_NUM; i++) {
+			for (int j = 0; j < blockManager.WIDTH_BLOCK_NUM; j++) {
 				if (blockManager.ExistHardenBlock(i, j))
-					buffg.fillRect(j * BLOCK_LENGTH, i * BLOCK_LENGTH, BLOCK_LENGTH, BLOCK_LENGTH);
+					buffg.fillRect(j * blockManager.BLOCK_LENGTH, i * blockManager.BLOCK_LENGTH,
+							blockManager.BLOCK_LENGTH, blockManager.BLOCK_LENGTH);
 			}
 		}
-		
-		if(blockManager.gameOver) {
+
+		// 게임 끝나면 게임을 멈추고 GameOver, YOU WIN, YOU LOST 등의 메세지를 뿌려준다.
+		if (blockManager.gameOver) {
 			buffg.setColor(Color.BLACK);
 			buffg.setFont(new Font(Statics.fontEnglish, Font.BOLD, 40));
-			buffg.drawString("GameOver", getWidth()/4, getHeight()/2);
+			buffg.drawString("GameOver", getWidth() / 4, getHeight() / 2);
 		}
 
 		g.drawImage(buffImage, 0, 0, this);
@@ -263,11 +257,10 @@ class JPanel_Game extends JPanel implements Runnable {
 
 	@Override
 	public void run() {
-		System.out.println("Thread running");
 		try {
 			while (!t.interrupted()) {
 				Thread.sleep(sleepTime);
-				// blockManager.goDown();
+				blockManager.goDown();
 				repaint();
 			}
 		} catch (InterruptedException e) {

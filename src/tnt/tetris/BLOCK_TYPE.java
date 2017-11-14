@@ -3,7 +3,7 @@ package tnt.tetris;
 import java.awt.Color;
 
 enum BLOCK_TYPE {
-	SQUARE(Color.YELLOW), LONG(Color.BLUE), LEFT_UP(Color.GREEN), RIGHT_UP(Color.RED);
+	SQUARE(Color.YELLOW), LONG(Color.BLUE), LEFT_UP(Color.GREEN), RIGHT_UP(Color.RED), LEFT_BOOT(Color.MAGENTA), RIGHT_BOOT(Color.CYAN);
 	
 	Color color;
 	BLOCK_TYPE(Color color){
@@ -18,8 +18,13 @@ enum BLOCK_TYPE {
 			return LONG;
 		case 2:
 			return LEFT_UP;
-		default://3 포함
+		case 3:
 			return RIGHT_UP;
+		case 4:
+			return LEFT_BOOT;
+		case 5:	
+		default: //
+			return RIGHT_BOOT;	
 		} 
 	}
 }

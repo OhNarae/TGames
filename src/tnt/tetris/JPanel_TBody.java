@@ -165,7 +165,7 @@ class JPanel_TBody_Next extends JPanel{
 
 class JPanel_TBody extends JPanel {
 
-	JPanel_Tetris panelTetris;
+	JPanel_Tetris_Main panelTetris;
 	
 	JLabel_Time lblTime;
 	JLabel_Level lblLevel;
@@ -177,7 +177,7 @@ class JPanel_TBody extends JPanel {
 	final int downKey;
 	final int changeKey;
 	
-	public JPanel_TBody(JPanel_Tetris panelTetris, int leftKey, int rightKey, int downKey, int changeKey) {
+	public JPanel_TBody(JPanel_Tetris_Main panelTetris, int leftKey, int rightKey, int downKey, int changeKey) {
 		setLayout(new BorderLayout(0, 0));
 		
 		this.panelTetris = panelTetris;
