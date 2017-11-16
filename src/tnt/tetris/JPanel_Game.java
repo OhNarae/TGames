@@ -32,7 +32,7 @@ class BlockManager {
 	int HEIGHT_HARDEN_BLOCK = HEIGHT_BLOCK_NUM + 1;
 
 	boolean gameOver;
-	String gameOverMsg;
+//	String gameOverMsg;
 
 	BlockManager(BLOCK_TYPE blockType, int width, int height) {
 
@@ -42,7 +42,7 @@ class BlockManager {
 		hardenBlock.or(setWall());
 
 		gameOver = false;
-		gameOverMsg = "GameOver";
+//		gameOverMsg = "GameOver";
 	}
 
 	BitSet setWall() {
@@ -191,16 +191,8 @@ class JPanel_Game extends JPanel implements Runnable {
 
 	JPanel_Game(JPanel_TBody panelBody) {
 		this.panelBody = panelBody;
+		
 		setLayout(null);
-
-		if (this.panelBody.getDisable()) {
-
-			JLabel lblShutDown = new JLabel(TetrisStatics.imgMinionGuitar);
-			lblShutDown.setBounds(0, 0, 100, 100);
-			add(lblShutDown);
-
-			return;
-		}
 
 		blockManager = new BlockManager(panelBody.pnNext.GetNextBlock().type, getWidth(), getHeight());
 		t = new Thread(this);

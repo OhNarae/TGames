@@ -87,7 +87,7 @@ class JLabel_Time extends JLabel {
 }
 
 class JLabel_Level extends JLabel {
-	int level = 1;
+//	int level = 1;
 	
 	JLabel_Level(){
 		setText("Lv.01");
@@ -98,9 +98,13 @@ class JLabel_Level extends JLabel {
 		setBorder(new MatteBorder(10, 35, 10, 35, Color.BLACK));
 	}
 	
-	void up(){
-		setText(String.format("Lv.%02d", ++level));
-	}	
+//	void up(){
+//		setText(String.format("Lv.%02d", ++level));
+//	}	
+	
+	void setLevel(int level) {
+		setText(String.format("Lv.%02d", level));
+	}
 }
 
 
@@ -165,8 +169,6 @@ class JPanel_TBody_Next extends JPanel{
 
 class JPanel_TBody extends JPanel {
 
-	JPanel_Tetris_Main panelTetris;
-	
 	JLabel_Time lblTime;
 	JLabel_Level lblLevel;
 	JPanel_TBody_Next pnNext;
@@ -179,13 +181,20 @@ class JPanel_TBody extends JPanel {
 	
 	private boolean disable = false;
 	
+	public int tManageNum;
+	
 	public JPanel_TBody(JPanel_Tetris_Main panelTetris) {
-		this(panelTetris, 0, 0, 0, 0);
+		this(panelTetris, 0, 0, 0, 0, 0);
 		this.disable = true;
 	}
 	
-	public JPanel_TBody(JPanel_Tetris_Main panelTetris, int leftKey, int rightKey, int downKey, int changeKey) {
-		this.panelTetris = panelTetris;
+	public int GetManageNum() {
+		return tManageNum;
+	}
+	
+	public JPanel_TBody(JPanel_Tetris_Main panelTetris, int num, int leftKey, int rightKey, int downKey, int changeKey) {
+
+		this.tManageNum = num;
 		
 		this.leftKey = leftKey;
 		this.rightKey = rightKey;
@@ -260,13 +269,8 @@ class JPanel_TBody extends JPanel {
 //			lblLevel.UP();
 //	}
 	
-	public void LevelUp() {
-		if(lblLevel.level + 1 > TetrisStatics.MaxLevel) {
-			panel_game.gameEnd(true);
-			return;
-		}
-		
-		lblLevel.up();
+	public void SetLevel(int level) {
+		lblLevel.setLevel(level);
 	}
 	
 	public void keyProcessing(int vkDown) {
