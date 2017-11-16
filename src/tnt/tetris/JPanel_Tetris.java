@@ -6,9 +6,7 @@ import javax.swing.JPanel;
 
 import tnt.*;
 
-enum TETRIS_MENU{
-	SELECT, MAIN
-}
+
 
 public class JPanel_Tetris extends JPanel {
 	private CardLayout cardLayout = new CardLayout();

@@ -2,6 +2,14 @@ package tnt.tetris;
 
 import java.awt.Color;
 
+import javax.swing.ImageIcon;
+
+public interface TetrisStatics {
+	ImageIcon imgMinionGuitar = new ImageIcon("image/tetris/minion-guitar.gif");
+	
+	int MaxLevel = 10;
+}
+
 enum BLOCK_TYPE {
 	SQUARE(Color.YELLOW), LONG(Color.BLUE), LEFT_UP(Color.GREEN), RIGHT_UP(Color.RED), LEFT_BOOT(Color.MAGENTA), RIGHT_BOOT(Color.CYAN);
 	
@@ -28,3 +36,16 @@ enum BLOCK_TYPE {
 		} 
 	}
 }
+
+enum TETRIS_MENU{
+	SELECT, MAIN
+}
+
+enum GAME_STATUS {
+	READY, RUNNING, STOP, END;
+}
+
+enum GAME_MODE{
+	ONE, TWO, DYNAMIC
+}
+

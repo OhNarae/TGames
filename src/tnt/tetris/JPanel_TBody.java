@@ -35,6 +35,7 @@ class JLabel_Time extends JLabel {
 		setForeground(Color.WHITE);
 		setFont(new Font(Statics.fontKorean, Font.PLAIN, 20));
 		setBorder(new MatteBorder(10, 20, 10, 20, Color.BLACK));
+		setText("00:00:00");
 		
 		this.BodyPanel = BodyPanel;
 	}
@@ -81,7 +82,6 @@ class JLabel_Time extends JLabel {
 				min = 0;
 				hour++;
 			}
-			BodyPanel.checkTime(hour, min);
 		}		
 	}
 }
@@ -98,9 +98,9 @@ class JLabel_Level extends JLabel {
 		setBorder(new MatteBorder(10, 35, 10, 35, Color.BLACK));
 	}
 	
-	void UP(){
+	void up(){
 		setText(String.format("Lv.%02d", ++level));
-	}
+	}	
 }
 
 
@@ -177,74 +177,101 @@ class JPanel_TBody extends JPanel {
 	final int downKey;
 	final int changeKey;
 	
+	private boolean disable = false;
+	
+	public JPanel_TBody(JPanel_Tetris_Main panelTetris) {
+		this(panelTetris, 0, 0, 0, 0);
+		this.disable = true;
+	}
+	
 	public JPanel_TBody(JPanel_Tetris_Main panelTetris, int leftKey, int rightKey, int downKey, int changeKey) {
-		setLayout(new BorderLayout(0, 0));
-		
 		this.panelTetris = panelTetris;
 		
 		this.leftKey = leftKey;
 		this.rightKey = rightKey;
 		this.downKey = downKey;
-		this.changeKey = changeKey;		
-
-		JPanel panel_tetris2_info = new JPanel();
-		panel_tetris2_info.setBackground(Statics.colorBackGround);
-		add(panel_tetris2_info, BorderLayout.EAST);
-		panel_tetris2_info.setLayout(new BoxLayout(panel_tetris2_info, BoxLayout.Y_AXIS));
-		panel_tetris2_info.setBorder(new MatteBorder(20, 20, 20, 20, Statics.colorBackGround));
+		this.changeKey = changeKey;	
+				
+		setLayout(new BorderLayout(0, 0));
+		
+		JPanel panel_tetris_info = new JPanel();
+		panel_tetris_info.setBackground(Statics.colorBackGround);
+		add(panel_tetris_info, BorderLayout.EAST);
+		panel_tetris_info.setLayout(new BoxLayout(panel_tetris_info, BoxLayout.Y_AXIS));
+		panel_tetris_info.setBorder(new MatteBorder(20, 20, 20, 20, Statics.colorBackGround));
 
 		lblTime = new JLabel_Time(this);
-		panel_tetris2_info.add(lblTime);
+		panel_tetris_info.add(lblTime);
 
-		panel_tetris2_info.add(Box.createVerticalStrut(25));
+		panel_tetris_info.add(Box.createVerticalStrut(25));
 
 		lblLevel = new JLabel_Level();
-		panel_tetris2_info.add(lblLevel);
+		panel_tetris_info.add(lblLevel);
 
-		panel_tetris2_info.add(Box.createVerticalStrut(25));
+		panel_tetris_info.add(Box.createVerticalStrut(25));
 
 		JLabel lblNext = new JLabel("Next");
 		lblNext.setForeground(Color.BLACK);
 		lblNext.setFont(new Font(Statics.fontKorean, Font.PLAIN, 30));
 		lblNext.setBorder(new MatteBorder(0, 20, 0, 0, (Color) new Color(255, 214, 109)));
-		panel_tetris2_info.add(lblNext);
+		panel_tetris_info.add(lblNext);
 
 		pnNext = new JPanel_TBody_Next();
-		panel_tetris2_info.add(pnNext);
+		panel_tetris_info.add(pnNext);
 
-		JPanel panel_tetris2_game_border = new JPanel();
-		add(panel_tetris2_game_border, BorderLayout.CENTER);
-		panel_tetris2_game_border.setLayout(new GridLayout(0, 1));
-		panel_tetris2_game_border.setBorder(new MatteBorder(29, 9, 30, 10, Statics.colorBackGround));
-		panel_tetris2_game_border.setBackground(Color.BLACK);
+		JPanel panel_tetris_game_border = new JPanel();
+		add(panel_tetris_game_border, BorderLayout.CENTER);
+		panel_tetris_game_border.setLayout(new GridLayout(0, 1));
+		panel_tetris_game_border.setBorder(new MatteBorder(29, 9, 30, 10, Statics.colorBackGround));
+		panel_tetris_game_border.setBackground(Color.BLACK);
 
 		panel_game = new JPanel_Game(this);
 
-		panel_tetris2_game_border.add(panel_game);
-		
+		panel_tetris_game_border.add(panel_game);		
 	}
 	
-	public void GameReady() {
+	public boolean getDisable() {
+		return this.disable;
+	}
+	
+	public void gameReady() {
+		if(this.disable) return;
+		
 		lblTime.end();		
 	}
 
-	public void GameStart() {
+	public void gameStart() {
+		if(this.disable) return;
+		
 		lblTime.start();
-		panel_game.GameStart();
+		panel_game.gameStart();
 	}
 
-	public void GameStop() {
+	public void gameStop() {
+		if(this.disable) return;
+		
 		lblTime.stop();
-		panel_game.GameStop();
+		panel_game.gameStop();
 	}
 	
-	public void checkTime(int hour, int min) {
-		int per_min = 1; //5분 후 부터 5분 단위로.
-		if((min > 0 || hour > 0) && min % per_min == 0) 
-			lblLevel.UP();
+//	public void checkTime(int hour, int min) {
+//		int per_min = 1; //5분 후 부터 5분 단위로.
+//		if((min > 0 || hour > 0) && min % per_min == 0) 
+//			lblLevel.UP();
+//	}
+	
+	public void LevelUp() {
+		if(lblLevel.level + 1 > TetrisStatics.MaxLevel) {
+			panel_game.gameEnd(true);
+			return;
+		}
+		
+		lblLevel.up();
 	}
 	
 	public void keyProcessing(int vkDown) {
+		if(this.disable) return;
+		
 		if(leftKey == vkDown) {
 			panel_game.pressLeftKey();
 		}else if(rightKey == vkDown) {

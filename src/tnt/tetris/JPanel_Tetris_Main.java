@@ -37,26 +37,20 @@ import java.awt.FlowLayout;
 
 import tnt.*;
 
-enum GAME_STATUS {
-	READY, RUNNING, STOP;
-}
-
-enum GAME_MODE{
-	ONE, TWO, DYNAMIC
-}
-
 public class JPanel_Tetris_Main extends JPanel {
+	JPanel panel_body;
 	JPanel_TBody panel_tetris1_body;
 	JPanel_TBody panel_tetris2_body;
 
 	JLabel lblMessage;
 
 	GAME_STATUS game_status;
-	
+	GAME_MODE game_mode;
+
 	public JPanel_Tetris_Main() {
 		setLayout(new BorderLayout(0, 0));
 		setSize(Statics.FRAME_WIDTH, Statics.FRAME_HEIGHT);
-		
+
 		JPanel panel_bottom = new JPanel();
 		add(panel_bottom, BorderLayout.SOUTH);
 		panel_bottom.setBackground(Statics.colorBackGround);
@@ -83,54 +77,71 @@ public class JPanel_Tetris_Main extends JPanel {
 			}
 		});
 
-		JPanel panel_body = new JPanel();
+		panel_body = new JPanel();
 		add(panel_body, BorderLayout.CENTER);
 		panel_body.setLayout(new BoxLayout(panel_body, BoxLayout.X_AXIS));
 
-		panel_tetris1_body = new JPanel_TBody(this, KeyEvent.VK_A, KeyEvent.VK_D, KeyEvent.VK_S, KeyEvent.VK_W);
-		panel_body.add(panel_tetris1_body);
+		String[] Actions = { "ENTER" };
+		addAction(Actions);
+	}
 
-		panel_tetris2_body = new JPanel_TBody(this, KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_DOWN, KeyEvent.VK_UP);
-		panel_body.add(panel_tetris2_body);
-		
-		String[] Actions = { "ENTER", "LEFT", "RIGHT", "DOWN", "UP", "A", "D", "S", "W", "SPACE" };
-		for (String Action : Actions) {
-			addAction(Action);
+	public void init(GAME_MODE gameMode) {
+		this.game_mode = gameMode;
+
+		switch (game_mode) {
+		case ONE:
+		case DYNAMIC:	
+			panel_tetris1_body = new JPanel_TBody(this);
+			panel_body.add(panel_tetris1_body);
+
+			panel_tetris2_body = new JPanel_TBody(this, KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_SPACE,
+					KeyEvent.VK_UP);
+			panel_body.add(panel_tetris2_body);
+
+			String[] ActionsOne = { "LEFT", "RIGHT", "SPACE", "UP"};
+			addAction(ActionsOne);
+			break;
+		case TWO:
+			panel_tetris1_body = new JPanel_TBody(this, KeyEvent.VK_A, KeyEvent.VK_D, KeyEvent.VK_S, KeyEvent.VK_W);
+			panel_body.add(panel_tetris1_body);
+
+			panel_tetris2_body = new JPanel_TBody(this, KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_DOWN,
+					KeyEvent.VK_UP);
+			panel_body.add(panel_tetris2_body);
+
+			String[] ActionsTwo = { "LEFT", "RIGHT", "DOWN", "UP", "A", "D", "S", "W", "SPACE" };
+			addAction(ActionsTwo);
+			break;
 		}
 
 		gameReady();
 	}
-	
-	public void init(GAME_MODE gameMode) {
-		switch(gameMode) {
-		case ONE:
-			break;
-		case TWO:
-			break;
-		case DYNAMIC:
-			break;
-		}
-	}
-	
+
 	private void gameReady() {
 		game_status = GAME_STATUS.READY;
 		lblMessage.setText("Enter를 치시면 게임이 시작 됩니다.");
-		panel_tetris1_body.GameReady();
-		panel_tetris2_body.GameReady();
+		panel_tetris1_body.gameReady();
+		panel_tetris2_body.gameReady();
 	}
 
 	private void gameStop() {
 		game_status = GAME_STATUS.STOP;
 		lblMessage.setText("Enter를 치시면 게임이 다시 시작 됩니다.");
-		panel_tetris1_body.GameStop();
-		panel_tetris2_body.GameStop();
+		panel_tetris1_body.gameStop();
+		panel_tetris2_body.gameStop();
 	}
 
 	private void gameStart() {
 		game_status = GAME_STATUS.RUNNING;
 		lblMessage.setText("Enter를 치시면 게임이 중단 됩니다.");
-		panel_tetris1_body.GameStart();
-		panel_tetris2_body.GameStart();
+		panel_tetris1_body.gameStart();
+		panel_tetris2_body.gameStart();
+	}
+
+	public void addAction(String[] names) {
+		for (String name : names) {
+			addAction(name);
+		}
 	}
 
 	public MotionAction addAction(String name) {
@@ -153,6 +164,7 @@ public class JPanel_Tetris_Main extends JPanel {
 		}
 
 		public void actionPerformed(ActionEvent e) {
+
 			switch (this.name) {
 			case "ENTER":
 				switch (game_status) {
@@ -166,31 +178,55 @@ public class JPanel_Tetris_Main extends JPanel {
 					gameStart();
 					break;
 				}
-				break;
-			case "LEFT":
-				panel_tetris2_body.keyProcessing(KeyEvent.VK_LEFT);
-				break;
-			case "RIGHT":
-				panel_tetris2_body.keyProcessing(KeyEvent.VK_RIGHT);
-				break;				
-			case "DOWN":
-				panel_tetris2_body.keyProcessing(KeyEvent.VK_DOWN); 
-				break;
-			case "UP":
-				panel_tetris2_body.keyProcessing(KeyEvent.VK_UP);
-				break;
-			case "A":
-				panel_tetris1_body.keyProcessing(KeyEvent.VK_A);
-				break;
-			case "D":
-				panel_tetris1_body.keyProcessing(KeyEvent.VK_D);
-				break;
-			case "S":
-				panel_tetris1_body.keyProcessing(KeyEvent.VK_S);
-				break;
-			case "W":
-				panel_tetris1_body.keyProcessing(KeyEvent.VK_W);
-				break;				
+				return;
+			}
+
+			switch (game_mode) {
+			case ONE:
+			case DYNAMIC:	
+				switch (this.name) {
+				case "LEFT":
+					panel_tetris2_body.keyProcessing(KeyEvent.VK_LEFT);
+					break;
+				case "RIGHT":
+					panel_tetris2_body.keyProcessing(KeyEvent.VK_RIGHT);
+					break;
+				case "SPACE":
+					panel_tetris2_body.keyProcessing(KeyEvent.VK_SPACE);
+					break;
+				case "UP":
+					panel_tetris2_body.keyProcessing(KeyEvent.VK_UP);
+					break;
+				}
+				return;
+			case TWO:
+				switch (this.name) {
+				case "LEFT":
+					panel_tetris2_body.keyProcessing(KeyEvent.VK_LEFT);
+					break;
+				case "RIGHT":
+					panel_tetris2_body.keyProcessing(KeyEvent.VK_RIGHT);
+					break;
+				case "DOWN":
+					panel_tetris2_body.keyProcessing(KeyEvent.VK_DOWN);
+					break;
+				case "UP":
+					panel_tetris2_body.keyProcessing(KeyEvent.VK_UP);
+					break;
+				case "A":
+					panel_tetris1_body.keyProcessing(KeyEvent.VK_A);
+					break;
+				case "D":
+					panel_tetris1_body.keyProcessing(KeyEvent.VK_D);
+					break;
+				case "S":
+					panel_tetris1_body.keyProcessing(KeyEvent.VK_S);
+					break;
+				case "W":
+					panel_tetris1_body.keyProcessing(KeyEvent.VK_W);
+					break;
+				}
+				return;
 			}
 		}
 	}

@@ -14,5 +14,4 @@ public class JPanel_Taro extends JPanel {
 	public JPanel_Taro() {
 
 	}
-
 }
