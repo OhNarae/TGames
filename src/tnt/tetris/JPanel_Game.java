@@ -32,9 +32,11 @@ class BlockManager {
 	int HEIGHT_HARDEN_BLOCK = HEIGHT_BLOCK_NUM + 1;
 
 	boolean gameOver;
-//	String gameOverMsg;
 
-	BlockManager(BLOCK_TYPE blockType, int width, int height) {
+	private int tManageNum;
+
+	BlockManager(int tManagerNum, BLOCK_TYPE blockType, int width, int height) {
+		this.tManageNum = tManagerNum;
 
 		newBlock = new TBlock(blockType, 5, 0);
 
@@ -42,7 +44,6 @@ class BlockManager {
 		hardenBlock.or(setWall());
 
 		gameOver = false;
-//		gameOverMsg = "GameOver";
 	}
 
 	BitSet setWall() {
@@ -97,6 +98,7 @@ class BlockManager {
 			// 정지 후 한줄이 채워진 블럭이 있는지 확인 (XOR? 로 계산하고 있을 시에는 >> 쉬프트로 이후의 블럭을 0단위까지 >> 다시 해당
 			// 위치까지 << 로 해결)
 			Iterator<Integer> itr = y_list.iterator();
+			int blockRows = 0;
 			while (itr.hasNext()) {
 				int y = itr.next();
 				if (hardenBlock.nextClearBit(y) > (y + WIDTH_HARDEN_BLOCK)) {// 한줄이 채워지면
@@ -109,8 +111,10 @@ class BlockManager {
 
 					hardenBlock.clear(0, y + WIDTH_HARDEN_BLOCK);
 					hardenBlock.or(bs);
+					blockRows++;
 				}
 			}
+			TetrisManager.inst.clearBlockRows(tManageNum, blockRows);
 		}
 
 		return false;
@@ -187,14 +191,13 @@ class JPanel_Game extends JPanel implements Runnable {
 	Thread t;
 	int sleepTime = 1000;
 
-	boolean victory;
+	String gameOverMsg = "";
 
 	JPanel_Game(JPanel_TBody panelBody) {
 		this.panelBody = panelBody;
-		
+
 		setLayout(null);
 
-		blockManager = new BlockManager(panelBody.pnNext.GetNextBlock().type, getWidth(), getHeight());
 		t = new Thread(this);
 	}
 
@@ -222,15 +225,25 @@ class JPanel_Game extends JPanel implements Runnable {
 
 	public void gameEnd(boolean victory) {
 		blockManager.gameOver = true;
-		this.victory = victory;
 	}
 
 	public void gameStart() {
+		if (blockManager == null) {
+			blockManager = new BlockManager(panelBody.tManageNum, panelBody.pnNext.GetNextBlock().type, getWidth(),
+					getHeight());
+		}
 		t.start();
 	}
 
 	public void gameStop() {
 		t.interrupt();
+	}
+
+	public void gameEnd(String msg) {
+		t.interrupt();
+
+		blockManager.gameOver = true;
+		gameOverMsg = msg;
 	}
 
 	public void paint(Graphics g) {
@@ -250,35 +263,31 @@ class JPanel_Game extends JPanel implements Runnable {
 
 		buffg.clearRect(0, 0, getWidth(), getHeight());
 
-		if (!blockManager.gameOver) {
-			// 현재 블럭
-			buffg.setColor(blockManager.newBlock.type.color);
-			for (Point point : blockManager.newBlock.points) {
-				buffg.fillRect(point.x * blockManager.BLOCK_LENGTH, point.y * blockManager.BLOCK_LENGTH,
-						blockManager.BLOCK_LENGTH, blockManager.BLOCK_LENGTH);
-			}
-		}
-
-		// 배경 블럭
-		buffg.setColor(Color.lightGray);
-		for (int i = 0; i < blockManager.HEIGHT_BLOCK_NUM; i++) {
-			for (int j = 0; j < blockManager.WIDTH_BLOCK_NUM; j++) {
-				if (blockManager.ExistHardenBlock(i, j))
-					buffg.fillRect(j * blockManager.BLOCK_LENGTH, i * blockManager.BLOCK_LENGTH,
+		if (blockManager != null) {
+			if (!blockManager.gameOver) {
+				// 현재 블럭
+				buffg.setColor(blockManager.newBlock.type.color);
+				for (Point point : blockManager.newBlock.points) {
+					buffg.fillRect(point.x * blockManager.BLOCK_LENGTH, point.y * blockManager.BLOCK_LENGTH,
 							blockManager.BLOCK_LENGTH, blockManager.BLOCK_LENGTH);
+				}
 			}
-		}
 
-		// 게임 끝나면 게임을 멈추고 GameOver, YOU WIN, YOU LOST 등의 메세지를 뿌려준다.
-		if (blockManager.gameOver) {
-			if (victory) {
+			// 배경 블럭
+			buffg.setColor(Color.lightGray);
+			for (int i = 0; i < blockManager.HEIGHT_BLOCK_NUM; i++) {
+				for (int j = 0; j < blockManager.WIDTH_BLOCK_NUM; j++) {
+					if (blockManager.ExistHardenBlock(i, j))
+						buffg.fillRect(j * blockManager.BLOCK_LENGTH, i * blockManager.BLOCK_LENGTH,
+								blockManager.BLOCK_LENGTH, blockManager.BLOCK_LENGTH);
+				}
+			}
+
+			// 게임 끝나면 게임을 멈추고 GameOver, YOU WIN, YOU LOST 등의 메세지를 뿌려준다.
+			if (blockManager.gameOver) {
 				buffg.setColor(Color.BLACK);
 				buffg.setFont(new Font(Statics.fontEnglish, Font.BOLD, 40));
-				buffg.drawString("You Win", getWidth() / 4, getHeight() / 2);
-			} else {
-				buffg.setColor(Color.BLACK);
-				buffg.setFont(new Font(Statics.fontEnglish, Font.BOLD, 40));
-				buffg.drawString("GameOver", getWidth() / 4, getHeight() / 2);
+				buffg.drawString(gameOverMsg, getWidth() / 4, getHeight() / 2);
 			}
 		}
 

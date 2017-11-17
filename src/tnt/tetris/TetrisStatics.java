@@ -8,6 +8,7 @@ public interface TetrisStatics {
 	ImageIcon imgMinionGuitar = new ImageIcon("image/tetris/minion-guitar.gif");
 	
 	int MaxLevel = 10;
+	int LEVEL_UP_ROWS_NUM = 10;
 }
 
 enum BLOCK_TYPE {

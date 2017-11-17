@@ -24,10 +24,12 @@ class TetrisManager {
 	JPanel_Tetris_Main tMain;
 	
 	class UserInfo{
+		int num;
 		JPanel_TBody tBody;
 		int point;
 		
-		public UserInfo(JPanel_TBody tBody) {
+		public UserInfo(int num, JPanel_TBody tBody) {
+			this.num = num;
 			this.tBody = tBody;
 			point = 0;
 		}
@@ -48,7 +50,7 @@ class TetrisManager {
 	}
 	
 	void Set(int num, JPanel_TBody body) {
-		tUsers.put(num, new UserInfo(body));
+		tUsers.put(num, new UserInfo(num, body));
 	}
 	
 	GAME_STATUS getGameStatus() {
@@ -60,6 +62,8 @@ class TetrisManager {
 	}
 	
 	void gameReady() {
+		game_status = GAME_STATUS.READY;
+		
 		tMain.setMessage("Enter를 치시면 게임이 시작 됩니다.");
 		for(UserInfo tUser : tUsers.values()) {
 			tUser.tBody.gameReady();
@@ -70,6 +74,7 @@ class TetrisManager {
 	
 	private void gameStop() {
 		game_status = GAME_STATUS.STOP;
+		
 		tMain.setMessage("Enter를 치시면 게임이 다시 시작 됩니다.");
 		for(UserInfo tUser : tUsers.values()) {
 			tUser.tBody.gameStop();
@@ -78,17 +83,39 @@ class TetrisManager {
 	
 	private void gameStart() {
 		game_status = GAME_STATUS.RUNNING;
+		
 		tMain.setMessage("Enter를 치시면 게임이 중단 됩니다.");
 		for(UserInfo tUser : tUsers.values()) {
 			tUser.tBody.gameStart();
 		}
 	}
 	
-	public void LevelUp() {
+	public void LevelUp(int tManagerNum) {
 		if(level + 1 > TetrisStatics.MaxLevel) {
+			game_status = GAME_STATUS.END;
+			tMain.setMessage("Enter를 치시면 게임이 새로 시작 됩니다.");
+			for(UserInfo tUser : tUsers.values()) {
+				if(tUser.num == tManagerNum)
+					tUser.tBody.gameEnd("Victory!!");
+				else
+					tUser.tBody.gameEnd("You Lost!!");
+			}
 			return;
 		}
+		level++;
 	}	
+	
+	public void IamGameOver(int tManageNum) {
+		game_status = GAME_STATUS.END;
+		tMain.setMessage("Enter를 치시면 게임이 새로 시작 됩니다.");
+		for(UserInfo tUser : tUsers.values()) {
+			if(tUser.num == tManageNum)
+				tUser.tBody.gameEnd("I Lost!!");
+			else
+				tUser.tBody.gameEnd("You Win!!");
+		}
+		return;
+	}
 	
 	void Enter() {
 		switch (game_status) {
@@ -104,6 +131,15 @@ class TetrisManager {
 		}
 		return;
 	}
+	
+	public void clearBlockRows(int tManagerNum, int blockRows) {
+		UserInfo userInfo = tUsers.get(tManagerNum);
+		
+		userInfo.point += blockRows;
+		if(userInfo.point > TetrisStatics.LEVEL_UP_ROWS_NUM) {
+			LevelUp(tManagerNum);
+		}
+	}
 }
 
 public class JPanel_Tetris_Main extends JPanel {
@@ -113,9 +149,6 @@ public class JPanel_Tetris_Main extends JPanel {
 
 	JLabel lblMessage;
 
-//	GAME_STATUS game_status;
-//	GAME_MODE game_mode;
-	
 	TetrisManager tManager;
 
 	public JPanel_Tetris_Main() {
@@ -230,6 +263,7 @@ public class JPanel_Tetris_Main extends JPanel {
 				return;
 			}
 
+			if(TetrisManager.inst.game_status == GAME_STATUS.STOP) return;
 			switch (tManager.getGameMode()) {
 			case ONE:
 			case DYNAMIC:	

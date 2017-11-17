@@ -188,10 +188,6 @@ class JPanel_TBody extends JPanel {
 		this.disable = true;
 	}
 	
-	public int GetManageNum() {
-		return tManageNum;
-	}
-	
 	public JPanel_TBody(JPanel_Tetris_Main panelTetris, int num, int leftKey, int rightKey, int downKey, int changeKey) {
 
 		this.tManageNum = num;
@@ -263,6 +259,13 @@ class JPanel_TBody extends JPanel {
 		panel_game.gameStop();
 	}
 	
+	public void gameEnd(String msg) {
+		if(this.disable) return;
+		
+		lblTime.stop();
+		panel_game.gameEnd(msg);
+	}
+	
 //	public void checkTime(int hour, int min) {
 //		int per_min = 1; //5분 후 부터 5분 단위로.
 //		if((min > 0 || hour > 0) && min % per_min == 0) 
@@ -274,7 +277,7 @@ class JPanel_TBody extends JPanel {
 	}
 	
 	public void keyProcessing(int vkDown) {
-		if(this.disable) return;
+		if(this.disable) return;		
 		
 		if(leftKey == vkDown) {
 			panel_game.pressLeftKey();
