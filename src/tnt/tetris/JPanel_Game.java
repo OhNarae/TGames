@@ -107,6 +107,10 @@ class BlockManager {
 	// }
 	// return BitSet.valueOf(bsByteArray);
 	// }
+	
+	boolean newBlockisNull() {
+		return newBlock == null;
+	}
 
 	void setNewBlock(BLOCK_TYPE blockType) {
 		synchronized (this) {
@@ -293,8 +297,10 @@ class JPanel_Game extends JPanel implements Runnable {
 	}
 
 	public void gameStart() {
-		blockManager.setNewBlock(panelBody.pnNext.GetNextBlock().type);
-		repaint();
+		if(blockManager.newBlockisNull()) {
+			blockManager.setNewBlock(panelBody.pnNext.GetNextBlock().type);
+			repaint();
+		}
 		
 		t.start();
 	}
