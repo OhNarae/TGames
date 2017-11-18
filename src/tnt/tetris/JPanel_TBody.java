@@ -239,12 +239,15 @@ class JPanel_TBody extends JPanel {
 		return this.disable;
 	}
 	
-	public void gameReady() {
+	//게임 초기화(시작하기 전 준비)
+	public void gameReady() { 
 		if(this.disable) return;
 		
-		lblTime.end();		
+		lblTime.end();
+		panel_game.gameReady();
 	}
 
+	//게임 시작
 	public void gameStart() {
 		if(this.disable) return;
 		
@@ -252,7 +255,8 @@ class JPanel_TBody extends JPanel {
 		panel_game.gameStart();
 	}
 
-	public void gameStop() {
+	//게임 스톱
+	public void gameStop() { 
 		if(this.disable) return;
 		
 		lblTime.stop();

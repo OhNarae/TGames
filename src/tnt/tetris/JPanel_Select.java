@@ -28,14 +28,14 @@ public class JPanel_Select extends JPanel{
 		setBackground(Statics.colorBackGround);
 		
 		JLabel lblTetrisTitle = new JLabel("");
-		lblTetrisTitle.setIcon(new ImageIcon(JPanel_Select.class.getResource("/tetris/title_tetris.png")));
+		lblTetrisTitle.setIcon(new ImageIcon("image/tetris/title_tetris.png"));
 		lblTetrisTitle.setBounds(436, 40, 255, 203);
 		add(lblTetrisTitle);
 		
 		JButton btn1PMode = new JButton("     1인 모드");
 		btn1PMode.setFont(new Font("나눔고딕 ExtraBold", Font.PLAIN, 22));
 		btn1PMode.setHorizontalAlignment(SwingConstants.LEFT);
-		btn1PMode.setIcon(new ImageIcon(JPanel_Select.class.getResource("/tetris/block_long.png")));
+		btn1PMode.setIcon(new ImageIcon("image/tetris/block_long.png"));
 		btn1PMode.setBounds(450, 282, 312, 75);
 		btn1PMode.setBorderPainted(false); // 외곽선 없애줌
 		btn1PMode.setContentAreaFilled(false);// 내용영역 채우기 않함
@@ -52,7 +52,7 @@ public class JPanel_Select extends JPanel{
 		JButton btn2PMode = new JButton("        2인 모드");
 		btn2PMode.setFont(new Font("나눔고딕 ExtraBold", Font.PLAIN, 22));
 		btn2PMode.setHorizontalAlignment(SwingConstants.LEFT);
-		btn2PMode.setIcon(new ImageIcon(JPanel_Select.class.getResource("/tetris/block_squre.png")));
+		btn2PMode.setIcon(new ImageIcon("image/tetris/block_squre.png"));
 		btn2PMode.setBounds(450, 390, 312, 75);
 		btn2PMode.setBorderPainted(false); // 외곽선 없애줌
 		btn2PMode.setContentAreaFilled(false);// 내용영역 채우기 않함
@@ -69,7 +69,7 @@ public class JPanel_Select extends JPanel{
 		JButton btnDynamicMode = new JButton("        다이나믹 모드");
 		btnDynamicMode.setFont(new Font("나눔고딕 ExtraBold", Font.PLAIN, 22));
 		btnDynamicMode.setHorizontalAlignment(SwingConstants.LEFT);
-		btnDynamicMode.setIcon(new ImageIcon(JPanel_Select.class.getResource("/tetris/block_rightup.png")));
+		btnDynamicMode.setIcon(new ImageIcon("image/tetris/block_rightup.png"));
 		btnDynamicMode.setBounds(450, 493, 312, 75);
 		btnDynamicMode.setBorderPainted(false); // 외곽선 없애줌
 		btnDynamicMode.setContentAreaFilled(false);// 내용영역 채우기 않함
@@ -86,7 +86,7 @@ public class JPanel_Select extends JPanel{
 		JButton btnQuit = new JButton("     나가기");
 		btnQuit.setFont(new Font("나눔고딕 ExtraBold", Font.PLAIN, 22));
 		btnQuit.setHorizontalAlignment(SwingConstants.LEFT);
-		btnQuit.setIcon(new ImageIcon(JPanel_Select.class.getResource("/tetris/block_leftup.png")));
+		btnQuit.setIcon(new ImageIcon("image/tetris/block_leftup.png"));
 		btnQuit.setBounds(450, 592, 273, 75);
 		btnQuit.setBorderPainted(false); // 외곽선 없애줌
 		btnQuit.setContentAreaFilled(false);// 내용영역 채우기 않함

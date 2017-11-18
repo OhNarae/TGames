@@ -45,11 +45,13 @@ class TetrisManager {
 		
 		this.tMain = main;
 		tUsers = new HashMap<>();
-		
-		gameReady();	
 	}
 	
-	void Set(int num, JPanel_TBody body) {
+	int getLevel() {
+		return level;
+	}
+	
+	void set(int num, JPanel_TBody body) {
 		tUsers.put(num, new UserInfo(num, body));
 	}
 	
@@ -61,7 +63,7 @@ class TetrisManager {
 		return game_mode;
 	}
 	
-	void gameReady() {
+	void init() {
 		game_status = GAME_STATUS.READY;
 		
 		tMain.setMessage("Enter를 치시면 게임이 시작 됩니다.");
@@ -69,9 +71,9 @@ class TetrisManager {
 			tUser.tBody.gameReady();
 		}
 		
-		level = 0;
+		level = 1;
 	}	
-	
+		
 	private void gameStop() {
 		game_status = GAME_STATUS.STOP;
 		
@@ -90,7 +92,7 @@ class TetrisManager {
 		}
 	}
 	
-	public void LevelUp(int tManagerNum) {
+	public void levelUp(int tManagerNum) {
 		if(level + 1 > TetrisStatics.MaxLevel) {
 			game_status = GAME_STATUS.END;
 			tMain.setMessage("Enter를 치시면 게임이 새로 시작 됩니다.");
@@ -103,14 +105,22 @@ class TetrisManager {
 			return;
 		}
 		level++;
+		for(UserInfo tUser : tUsers.values()) {
+				tUser.point = 0;
+				tUser.tBody.lblLevel.setLevel(level);
+				tUser.tBody.panel_game.speedUp();
+				if(game_mode == GAME_MODE.DYNAMIC) {
+					tUser.tBody.panel_game.blockManager.setWall(level);
+				}
+		}
 	}	
 	
-	public void IamGameOver(int tManageNum) {
+	public void IamLoser(int tManageNum) {
 		game_status = GAME_STATUS.END;
 		tMain.setMessage("Enter를 치시면 게임이 새로 시작 됩니다.");
 		for(UserInfo tUser : tUsers.values()) {
 			if(tUser.num == tManageNum)
-				tUser.tBody.gameEnd("I Lost!!");
+				tUser.tBody.gameEnd("You Lost!!");
 			else
 				tUser.tBody.gameEnd("You Win!!");
 		}
@@ -128,6 +138,10 @@ class TetrisManager {
 		case STOP:
 			gameStart();
 			break;
+		case END:
+			init();
+			gameStart();
+			break;
 		}
 		return;
 	}
@@ -137,7 +151,7 @@ class TetrisManager {
 		
 		userInfo.point += blockRows;
 		if(userInfo.point > TetrisStatics.LEVEL_UP_ROWS_NUM) {
-			LevelUp(tManagerNum);
+			levelUp(tManagerNum);
 		}
 	}
 }
@@ -176,7 +190,7 @@ public class JPanel_Tetris_Main extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				tManager.gameReady(); // 게임을 초기화 해준다.
+//				tManager.gameInit(); // 게임을 초기화 해준다.
 				GameFrame.Inst.changePanel(GAME.FIRST);
 			}
 		});
@@ -205,7 +219,7 @@ public class JPanel_Tetris_Main extends JPanel {
 			String[] ActionsOne = { "LEFT", "RIGHT", "SPACE", "UP"};
 			addAction(ActionsOne);
 			
-			tManager.Set(2, panel_tetris2_body);
+			tManager.set(2, panel_tetris2_body);
 			break;
 		case TWO:
 			panel_tetris1_body = new JPanel_TBody(this, 1, KeyEvent.VK_A, KeyEvent.VK_D, KeyEvent.VK_S, KeyEvent.VK_W);
@@ -218,12 +232,12 @@ public class JPanel_Tetris_Main extends JPanel {
 			String[] ActionsTwo = { "LEFT", "RIGHT", "DOWN", "UP", "A", "D", "S", "W", "SPACE" };
 			addAction(ActionsTwo);
 			
-			tManager.Set(1, panel_tetris1_body);
-			tManager.Set(2, panel_tetris2_body);
+			tManager.set(1, panel_tetris1_body);
+			tManager.set(2, panel_tetris2_body);
 			break;
 		}
 		
-		
+		tManager.init();
 	}
 	
 	public void setMessage(String msg) {

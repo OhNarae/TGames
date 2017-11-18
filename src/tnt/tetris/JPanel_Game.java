@@ -4,9 +4,14 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
-
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.TreeSet;
 
 import javax.swing.JButton;
@@ -35,43 +40,89 @@ class BlockManager {
 
 	private int tManageNum;
 
-	BlockManager(int tManagerNum, BLOCK_TYPE blockType, int width, int height) {
+	List<BitSet> hardenBlockMap;
+
+	BlockManager(int tManagerNum) {
 		this.tManageNum = tManagerNum;
 
-		newBlock = new TBlock(blockType, 5, 0);
+		// newBlock = new TBlock(blockType, 5, 0);
+		hardenBlockMap = new ArrayList<>();
+		makeHardenBlockMap();
 
 		hardenBlock = new BitSet(HEIGHT_HARDEN_BLOCK * WIDTH_HARDEN_BLOCK);
-		hardenBlock.or(setWall());
+		
 
 		gameOver = false;
 	}
 
-	BitSet setWall() {
-		byte[] bsByteArray = new byte[HEIGHT_HARDEN_BLOCK * (WIDTH_HARDEN_BLOCK / 8)];
+	void makeHardenBlockMap() {
 
-		for (int i = 0; i < bsByteArray.length; i += 2) {
-			if (i == bsByteArray.length - 2) {
-				bsByteArray[i] = -1; // 1111 1111
-				bsByteArray[i + 1] = -1;
-			} else {
-				bsByteArray[i] = 1;// 0000 0001
-				bsByteArray[i + 1] = -128; // 1000 0000
+		File dirFile = new File(TetrisStatics.dirDynamicMap);
+		File[] fileList = dirFile.listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File pathname) {
+				// TODO Auto-generated method stub
+				return pathname.getName().matches(TetrisStatics.patternDynamicMapFile);
 			}
+		});
+
+		FileInputStream input;
+        byte[] b = new byte[WIDTH_HARDEN_BLOCK*HEIGHT_HARDEN_BLOCK];
+		for (int i = 0 ; i < fileList.length ; i++) {//File file : fileList) {
+			try {
+				input = new FileInputStream(fileList[i].getPath());
+				for (int j = 0; j < HEIGHT_HARDEN_BLOCK; j++) {
+					input.read(b, j * WIDTH_HARDEN_BLOCK, WIDTH_HARDEN_BLOCK);
+					input.skip(2);
+				}
+				input.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			BitSet bs = new BitSet(WIDTH_HARDEN_BLOCK*HEIGHT_HARDEN_BLOCK);
+			for(int k = 0 ; k < WIDTH_HARDEN_BLOCK*HEIGHT_HARDEN_BLOCK ; k++)
+				if(b[k] != '0') bs.set(k);
+					
+			hardenBlockMap.add(i, bs);
 		}
-		return BitSet.valueOf(bsByteArray);
 	}
 
+	void setWall(int level) {
+		hardenBlock.clear();
+		hardenBlock.or(hardenBlockMap.get(level));
+	}
+
+	// BitSet setWall(int level) {
+	// byte[] bsByteArray = new byte[HEIGHT_HARDEN_BLOCK * (WIDTH_HARDEN_BLOCK /
+	// 8)];
+	//
+	// for (int i = 0; i < bsByteArray.length; i += 2) {
+	// if (i == bsByteArray.length - 2) {
+	// bsByteArray[i] = -1; // 1111 1111
+	// bsByteArray[i + 1] = -1;
+	// } else {
+	// bsByteArray[i] = 1;// 0000 0001
+	// bsByteArray[i + 1] = -128; // 1000 0000
+	// }
+	// }
+	// return BitSet.valueOf(bsByteArray);
+	// }
+
 	void setNewBlock(BLOCK_TYPE blockType) {
-		newBlock = new TBlock(blockType, 5, 0);
+		synchronized (this) {
+			newBlock = new TBlock(blockType, 5, 0);
+		}
 	}
 
 	boolean goDown() {
+		if(newBlock == null) return false;
+		
 		boolean canGo = true;
-
 		synchronized (this) {
 			// 하나 다운 된 위치를 비트로 계산
 			BitSet newBlockBS = new BitSet(HEIGHT_HARDEN_BLOCK * WIDTH_HARDEN_BLOCK);
 			TreeSet<Integer> y_list = new TreeSet<Integer>();// 하드블럭이 될 시 y의 위치를 확인하여야 함으로 저장 (채워진 블럭은 없애야 함으로)
+			
 			for (Point point : newBlock.points) {
 				y_list.add(point.y * WIDTH_HARDEN_BLOCK);
 				newBlockBS.set(point.y * WIDTH_HARDEN_BLOCK + point.x + 1);
@@ -92,8 +143,11 @@ class BlockManager {
 
 			// -> 겹치는 부분이 있다면 정지
 			hardenBlock.or(newBlockBS);
-			if (gameOver)
+			newBlock = null;
+			if (gameOver) {
+				TetrisManager.inst.IamLoser(tManageNum);
 				return false;
+			}
 
 			// 정지 후 한줄이 채워진 블럭이 있는지 확인 (XOR? 로 계산하고 있을 시에는 >> 쉬프트로 이후의 블럭을 0단위까지 >> 다시 해당
 			// 위치까지 << 로 해결)
@@ -114,13 +168,16 @@ class BlockManager {
 					blockRows++;
 				}
 			}
-			TetrisManager.inst.clearBlockRows(tManageNum, blockRows);
+			if (blockRows > 0)
+				TetrisManager.inst.clearBlockRows(tManageNum, blockRows);
 		}
 
 		return false;
 	}
 
 	void goLeft() {
+		if(newBlock == null) return;
+		
 		boolean canGo = true;
 		// 하나 Left 이동 된 위치를 비트로 계산
 		synchronized (this) {
@@ -139,6 +196,8 @@ class BlockManager {
 	}
 
 	void goRight() {
+		if(newBlock == null) return;
+		
 		boolean canGo = true;
 		synchronized (this) {
 			// 하나 Right 이동 된 위치를 비트로 계산
@@ -157,7 +216,8 @@ class BlockManager {
 	}
 
 	void change() {
-
+		if(newBlock == null) return;
+		
 		// change된 위치를 비트로 계산
 		boolean canGo = true;
 		synchronized (this) {
@@ -189,7 +249,7 @@ class JPanel_Game extends JPanel implements Runnable {
 	Graphics buffg;
 
 	Thread t;
-	int sleepTime = 1000;
+	int speed = 1000;
 
 	String gameOverMsg = "";
 
@@ -223,15 +283,23 @@ class JPanel_Game extends JPanel implements Runnable {
 		repaint();
 	}
 
-	public void gameEnd(boolean victory) {
-		blockManager.gameOver = true;
+	public void gameReady() {
+		blockManager = new BlockManager(panelBody.tManageNum);
+		if(TetrisManager.inst.game_mode == GAME_MODE.DYNAMIC) {
+			blockManager.setWall(1);
+		}else {
+			blockManager.setWall(0);
+		}
 	}
 
 	public void gameStart() {
-		if (blockManager == null) {
-			blockManager = new BlockManager(panelBody.tManageNum, panelBody.pnNext.GetNextBlock().type, getWidth(),
-					getHeight());
-		}
+		blockManager.setNewBlock(panelBody.pnNext.GetNextBlock().type);
+		repaint();
+		
+		t.start();
+	}
+
+	public void gameReStart() {
 		t.start();
 	}
 
@@ -244,6 +312,10 @@ class JPanel_Game extends JPanel implements Runnable {
 
 		blockManager.gameOver = true;
 		gameOverMsg = msg;
+	}
+
+	public void speedUp() {
+		speed = speed - 20*TetrisManager.inst.getLevel();
 	}
 
 	public void paint(Graphics g) {
@@ -264,7 +336,7 @@ class JPanel_Game extends JPanel implements Runnable {
 		buffg.clearRect(0, 0, getWidth(), getHeight());
 
 		if (blockManager != null) {
-			if (!blockManager.gameOver) {
+			if (!blockManager.gameOver && blockManager.newBlock != null) {
 				// 현재 블럭
 				buffg.setColor(blockManager.newBlock.type.color);
 				for (Point point : blockManager.newBlock.points) {
@@ -287,7 +359,7 @@ class JPanel_Game extends JPanel implements Runnable {
 			if (blockManager.gameOver) {
 				buffg.setColor(Color.BLACK);
 				buffg.setFont(new Font(Statics.fontEnglish, Font.BOLD, 40));
-				buffg.drawString(gameOverMsg, getWidth() / 4, getHeight() / 2);
+				buffg.drawString(gameOverMsg, getWidth() / 4 + gameOverMsg.length() * 5, getHeight() / 2);
 			}
 		}
 
@@ -298,7 +370,7 @@ class JPanel_Game extends JPanel implements Runnable {
 	public void run() {
 		try {
 			while (!Thread.interrupted()) {
-				Thread.sleep(sleepTime / 10);
+				Thread.sleep(speed);
 				pressDownKey();
 			}
 		} catch (InterruptedException e) {

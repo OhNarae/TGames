@@ -7,8 +7,11 @@ import javax.swing.ImageIcon;
 public interface TetrisStatics {
 	ImageIcon imgMinionGuitar = new ImageIcon("image/tetris/minion-guitar.gif");
 	
+	String dirDynamicMap = "image/tetris/dynamic_map/";
+	String patternDynamicMapFile = "level\\d+.txt";
+	
 	int MaxLevel = 10;
-	int LEVEL_UP_ROWS_NUM = 10;
+	int LEVEL_UP_ROWS_NUM = 1;
 }
 
 enum BLOCK_TYPE {
