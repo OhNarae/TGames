@@ -6,9 +6,10 @@ import javax.swing.JPanel;
 
 import tnt.*;
 
-
-
 public class JPanel_Tetris extends JPanel {
+
+	private static final long serialVersionUID = 1L;
+
 	private CardLayout cardLayout = new CardLayout();
 	
 	private JPanel_Select pnSelect =  new JPanel_Select(this);

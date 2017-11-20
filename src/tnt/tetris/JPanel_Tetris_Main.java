@@ -10,153 +10,12 @@ import java.awt.event.KeyEvent;
 import java.awt.BorderLayout;
 import java.awt.Font;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import tnt.*;
 
-class TetrisManager {
-	static TetrisManager inst;
-	
-	GAME_STATUS game_status;
-	GAME_MODE game_mode;
-	
-	JPanel_Tetris_Main tMain;
-	
-	class UserInfo{
-		int num;
-		JPanel_TBody tBody;
-		int point;
-		
-		public UserInfo(int num, JPanel_TBody tBody) {
-			this.num = num;
-			this.tBody = tBody;
-			point = 0;
-		}
-	}
-	Map<Integer, UserInfo> tUsers;	
-	
-	int level;
-	
-	TetrisManager(GAME_MODE game_mode, JPanel_Tetris_Main main){
-		inst = this;
-		
-		this.game_mode = game_mode;
-		
-		this.tMain = main;
-		tUsers = new HashMap<>();
-	}
-	
-	int getLevel() {
-		return level;
-	}
-	
-	void set(int num, JPanel_TBody body) {
-		tUsers.put(num, new UserInfo(num, body));
-	}
-	
-	GAME_STATUS getGameStatus() {
-		return game_status;
-	}
-	
-	GAME_MODE getGameMode() {
-		return game_mode;
-	}
-	
-	void init() {
-		game_status = GAME_STATUS.READY;
-		
-		tMain.setMessage("Enter를 치시면 게임이 시작 됩니다.");
-		for(UserInfo tUser : tUsers.values()) {
-			tUser.tBody.gameReady();
-		}
-		
-		level = 1;
-	}	
-		
-	private void gameStop() {
-		game_status = GAME_STATUS.STOP;
-		
-		tMain.setMessage("Enter를 치시면 게임이 다시 시작 됩니다.");
-		for(UserInfo tUser : tUsers.values()) {
-			tUser.tBody.gameStop();
-		}
-	}
-	
-	private void gameStart() {
-		game_status = GAME_STATUS.RUNNING;
-		
-		tMain.setMessage("Enter를 치시면 게임이 중단 됩니다.");
-		for(UserInfo tUser : tUsers.values()) {
-			tUser.tBody.gameStart();
-		}
-	}
-	
-	public void levelUp(int tManagerNum) {
-		if(level + 1 > TetrisStatics.MaxLevel) {
-			game_status = GAME_STATUS.END;
-			tMain.setMessage("Enter를 치시면 게임이 새로 시작 됩니다.");
-			for(UserInfo tUser : tUsers.values()) {
-				if(tUser.num == tManagerNum)
-					tUser.tBody.gameEnd("Victory!!");
-				else
-					tUser.tBody.gameEnd("You Lost!!");
-			}
-			return;
-		}
-		level++;
-		for(UserInfo tUser : tUsers.values()) {
-				tUser.point = 0;
-				tUser.tBody.lblLevel.setLevel(level);
-				tUser.tBody.panel_game.speedUp();
-				if(game_mode == GAME_MODE.DYNAMIC) {
-					tUser.tBody.panel_game.blockManager.setWall(level);
-				}
-		}
-	}	
-	
-	public void IamLoser(int tManageNum) {
-		game_status = GAME_STATUS.END;
-		tMain.setMessage("Enter를 치시면 게임이 새로 시작 됩니다.");
-		for(UserInfo tUser : tUsers.values()) {
-			if(tUser.num == tManageNum)
-				tUser.tBody.gameEnd("You Lost!!");
-			else
-				tUser.tBody.gameEnd("You Win!!");
-		}
-		return;
-	}
-	
-	void Enter() {
-		switch (game_status) {
-		case READY:
-			gameStart();
-			break;
-		case RUNNING:
-			gameStop();
-			break;
-		case STOP:
-			gameStart();
-			break;
-		case END:
-			init();
-			gameStart();
-			break;
-		}
-		return;
-	}
-	
-	public void clearBlockRows(int tManagerNum, int blockRows) {
-		UserInfo userInfo = tUsers.get(tManagerNum);
-		
-		userInfo.point += blockRows;
-		if(userInfo.point > TetrisStatics.LEVEL_UP_ROWS_NUM) {
-			levelUp(tManagerNum);
-		}
-	}
-}
-
 public class JPanel_Tetris_Main extends JPanel {
+
+	private static final long serialVersionUID = 1L;
+	
 	JPanel panel_body;
 	JPanel_TBody panel_tetris1_body;
 	JPanel_TBody panel_tetris2_body;
@@ -262,6 +121,9 @@ public class JPanel_Tetris_Main extends JPanel {
 	}
 
 	private class MotionAction extends AbstractAction implements ActionListener {
+
+		private static final long serialVersionUID = 1L;
+
 		String name;
 
 		public MotionAction(String name) {
@@ -277,7 +139,7 @@ public class JPanel_Tetris_Main extends JPanel {
 				return;
 			}
 
-			if(TetrisManager.inst.game_status == GAME_STATUS.STOP) return;
+			if(TetrisManager.inst.getGameStatus() == GAME_STATUS.STOP) return;
 			switch (tManager.getGameMode()) {
 			case ONE:
 			case DYNAMIC:	

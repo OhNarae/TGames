@@ -2,7 +2,6 @@ package tnt.tetris;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridLayout;
@@ -21,6 +20,9 @@ import javax.swing.border.MatteBorder;
 import tnt.Statics;
 
 class JLabel_Time extends JLabel {
+
+	private static final long serialVersionUID = 1L;
+	
 	private int sec;
 	private int min;
 	private int hour;
@@ -87,7 +89,8 @@ class JLabel_Time extends JLabel {
 }
 
 class JLabel_Level extends JLabel {
-//	int level = 1;
+
+	private static final long serialVersionUID = 1L;
 	
 	JLabel_Level(){
 		setText("Lv.01");
@@ -98,10 +101,6 @@ class JLabel_Level extends JLabel {
 		setBorder(new MatteBorder(10, 35, 10, 35, Color.BLACK));
 	}
 	
-//	void up(){
-//		setText(String.format("Lv.%02d", ++level));
-//	}	
-	
 	void setLevel(int level) {
 		setText(String.format("Lv.%02d", level));
 	}
@@ -110,6 +109,8 @@ class JLabel_Level extends JLabel {
 
 
 class JPanel_TBody_Next extends JPanel{
+
+	private static final long serialVersionUID = 1L;
 	
 	Queue<TBlock>  preBlocks; //예상 블럭 정보
 	final int preBlockNum = 4; //예상 블럭 갯수
@@ -169,6 +170,8 @@ class JPanel_TBody_Next extends JPanel{
 
 class JPanel_TBody extends JPanel {
 
+	private static final long serialVersionUID = 1L;
+	
 	JLabel_Time lblTime;
 	JLabel_Level lblLevel;
 	JPanel_TBody_Next pnNext;
@@ -244,6 +247,7 @@ class JPanel_TBody extends JPanel {
 		if(this.disable) return;
 		
 		lblTime.end();
+		lblLevel.setLevel(1);
 		panel_game.gameReady();
 	}
 

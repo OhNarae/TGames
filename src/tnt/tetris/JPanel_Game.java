@@ -14,8 +14,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 
-import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import tnt.Statics;
@@ -45,12 +43,10 @@ class BlockManager {
 	BlockManager(int tManagerNum) {
 		this.tManageNum = tManagerNum;
 
-		// newBlock = new TBlock(blockType, 5, 0);
 		hardenBlockMap = new ArrayList<>();
 		makeHardenBlockMap();
 
 		hardenBlock = new BitSet(HEIGHT_HARDEN_BLOCK * WIDTH_HARDEN_BLOCK);
-		
 
 		gameOver = false;
 	}
@@ -86,28 +82,17 @@ class BlockManager {
 			hardenBlockMap.add(i, bs);
 		}
 	}
+	
+	void setWall() {
+		hardenBlock.clear();
+		hardenBlock.or(hardenBlockMap.get(0));	
+	}
 
 	void setWall(int level) {
 		hardenBlock.clear();
 		hardenBlock.or(hardenBlockMap.get(level));
 	}
 
-	// BitSet setWall(int level) {
-	// byte[] bsByteArray = new byte[HEIGHT_HARDEN_BLOCK * (WIDTH_HARDEN_BLOCK /
-	// 8)];
-	//
-	// for (int i = 0; i < bsByteArray.length; i += 2) {
-	// if (i == bsByteArray.length - 2) {
-	// bsByteArray[i] = -1; // 1111 1111
-	// bsByteArray[i + 1] = -1;
-	// } else {
-	// bsByteArray[i] = 1;// 0000 0001
-	// bsByteArray[i + 1] = -128; // 1000 0000
-	// }
-	// }
-	// return BitSet.valueOf(bsByteArray);
-	// }
-	
 	boolean newBlockisNull() {
 		return newBlock == null;
 	}
@@ -245,6 +230,8 @@ class BlockManager {
 
 class JPanel_Game extends JPanel implements Runnable {
 
+	private static final long serialVersionUID = 1L;
+
 	JPanel_TBody panelBody;
 
 	BlockManager blockManager;
@@ -253,7 +240,7 @@ class JPanel_Game extends JPanel implements Runnable {
 	Graphics buffg;
 
 	Thread t;
-	int speed = 1000;
+	int speed;
 
 	String gameOverMsg = "";
 
@@ -289,11 +276,14 @@ class JPanel_Game extends JPanel implements Runnable {
 
 	public void gameReady() {
 		blockManager = new BlockManager(panelBody.tManageNum);
-		if(TetrisManager.inst.game_mode == GAME_MODE.DYNAMIC) {
-			blockManager.setWall(1);
+		if(TetrisManager.inst.getGameMode() == GAME_MODE.DYNAMIC) {
+			blockManager.setWall(1); //레벨1의 바탕을 깐다.
 		}else {
-			blockManager.setWall(0);
+			blockManager.setWall(); //기본 바탕을 깐다.
 		}
+		
+		speed = TetrisStatics.DEFAULT_SPEED;
+		gameOverMsg = "";
 	}
 
 	public void gameStart() {
@@ -311,6 +301,8 @@ class JPanel_Game extends JPanel implements Runnable {
 
 	public void gameStop() {
 		t.interrupt();
+		
+		repaint();
 	}
 
 	public void gameEnd(String msg) {
@@ -318,6 +310,8 @@ class JPanel_Game extends JPanel implements Runnable {
 
 		blockManager.gameOver = true;
 		gameOverMsg = msg;
+		
+		repaint();
 	}
 
 	public void speedUp() {
@@ -365,7 +359,7 @@ class JPanel_Game extends JPanel implements Runnable {
 			if (blockManager.gameOver) {
 				buffg.setColor(Color.BLACK);
 				buffg.setFont(new Font(Statics.fontEnglish, Font.BOLD, 40));
-				buffg.drawString(gameOverMsg, getWidth() / 4 + gameOverMsg.length() * 5, getHeight() / 2);
+				buffg.drawString(gameOverMsg, (getWidth() - gameOverMsg.length())/4, getHeight() / 2);
 			}
 		}
 
@@ -380,7 +374,7 @@ class JPanel_Game extends JPanel implements Runnable {
 				pressDownKey();
 			}
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
 		} finally {
 			t = new Thread(this);
 		}

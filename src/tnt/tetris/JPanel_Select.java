@@ -16,11 +16,10 @@ import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 
 public class JPanel_Select extends JPanel{
-	
-	private JPanel_Tetris pnTetris;
+
+	private static final long serialVersionUID = 1L;
 	
 	public JPanel_Select(JPanel_Tetris pnTetris) {
-		this.pnTetris = pnTetris;
 		
 		setSize(Statics.FRAME_WIDTH, Statics.FRAME_HEIGHT);
 		setLayout(null);

@@ -10,8 +10,10 @@ public interface TetrisStatics {
 	String dirDynamicMap = "image/tetris/dynamic_map/";
 	String patternDynamicMapFile = "level\\d+.txt";
 	
-	int MaxLevel = 10;
+	int MAX_LEVEL = 10;
 	int LEVEL_UP_ROWS_NUM = 1;
+	
+	int DEFAULT_SPEED = 1000;
 }
 
 enum BLOCK_TYPE {
