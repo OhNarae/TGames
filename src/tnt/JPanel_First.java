@@ -36,14 +36,14 @@ public class JPanel_First extends JPanel implements ActionListener {
 		btnTetrisButton.setFont(new Font(Statics.fontEnglish, Font.PLAIN, 40));
 		add(btnTetrisButton);
 		
-		JButton btnPenButton = new JButton(GAME.TRICK_PICTURE.name(), Statics.imgPen);
-		btnPenButton.setBounds(12, 61, 588, 135);
-		btnPenButton.setBorderPainted(false); // 외곽선 없애줌
-		btnPenButton.setContentAreaFilled(false);// 내용영역 채우기 않함
-		btnPenButton.setFocusPainted(false); // 선택(focus)되었을 때 생기는 테두리 사용안함
-		btnPenButton.addActionListener(this);
-		btnPenButton.setFont(new Font(Statics.fontEnglish, Font.PLAIN, 40));
-		add(btnPenButton);
+//		JButton btnPenButton = new JButton(GAME.TRICK_PICTURE.name(), Statics.imgPen);
+//		btnPenButton.setBounds(12, 61, 588, 135);
+//		btnPenButton.setBorderPainted(false); // 외곽선 없애줌
+//		btnPenButton.setContentAreaFilled(false);// 내용영역 채우기 않함
+//		btnPenButton.setFocusPainted(false); // 선택(focus)되었을 때 생기는 테두리 사용안함
+//		btnPenButton.addActionListener(this);
+//		btnPenButton.setFont(new Font(Statics.fontEnglish, Font.PLAIN, 40));
+//		add(btnPenButton);
 
 		JButton btnExitButton = new JButton("Exit", Statics.imgExit);
 		btnExitButton.setBounds(1054, 665, Statics.imgExit.getIconWidth(), Statics.imgExit.getIconHeight());
